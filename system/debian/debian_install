@@ -1,0 +1,110 @@
+###########################################################
+### % debian系统安装指南
+###########################################################
+1  % 使用dd命令，将系统镜像文件写入 U盘
+2  % 插入U盘到电脑，重启计算机
+3  % 按<F2>热键进入BIOS系统
+4  % 修改电脑启动顺序为 [U盘为第一启动]
+5  % Secure 设置为禁止 [ Security ->Secure Boot menu ->Secure Boot Control [Disabled] ]
+6  % 保存BIOS设置
+
+
+% dd命令
+% ~# time dd if=ubuntu-20.04.1-desktop-amd64.iso of=/dev/sdd bs=4M status=progress oflag=sync
+
+
+
+###########################################################
+###  % debian 修改镜像源
+###########################################################
+% gedit /etc/apt/sources.list
+
+% 注释下面这条:
+# deb cdrom:[Debian GNU/Linux 9.4.0 _Stretch_ - Official amd64 DVD Binary-1 \
+                                        20180310-11:21]/ stretch contrib main
+
+
+
+###########################################################
+###  % 软件更新，切换至 root 用户 
+###########################################################
+su - root
+apt-get update
+
+
+
+###########################################################
+###  % 安装sudo 
+###########################################################
+% 1.默认状态是没有sudo命令的，需要安装。
+apt-get update
+apt-get install sudo
+
+
+% 2.编辑sudoers文件, gedit /etc/sudoers在 
+% 其中 ysh 为自己的用户名
+    %sudo ALL=(ALL:ALL) ALL 下面添加如下内容
+    ysh  ALL=(ALL:ALL) ALL
+
+
+
+###########################################################
+### debian auto_install_software
+###########################################################
+#!/bin/bash
+
+echo -e "\033[41;37m--->>>BEGING INSTALL UTILITIES\033[37;0m"
+sudo apt-get -y install gcc
+sudo apt-get -y install gdb
+sudo apt-get -y install git
+sudo apt-get -y install vim
+sudo apt-get -y install curl
+
+# sudo apt-get -y install make
+# sudo apt-get -y install cmake
+# sudo apt-get -y install openocd
+# sudo apt-get -y install automake
+# sudo apt-get -y install autoconf
+# sudo apt-get -y install libtool 
+# sudo apt-get -y install tmux
+# sudo apt-get -y install ranger 
+# sudo apt-get -y install xchm
+# sudo apt-get -y install kicad
+# sudo apt-get -y install dia
+# sudo apt-get -y install cmus 
+# sudo apt-get -y install smplayer
+# sudo apt-get -y install cryptsetup
+echo -e "\033[41;37mINSTALLATION IS COMPLETE--->>>\033[37;0m"
+echo "return $?"
+
+
+
+#################################################
+#                                               #
+# F11           ;Screen Full                    #
+#                                               #
+# Super+L       ;Lock Screen                    #
+# Super+H       ;Hide window                    #
+# Super+Up      ;Maximize window                #
+# Super+Left    ;View split on left             #
+# Super+right   ;View split on right            #
+#                                               #
+# Alt+F2        ;Show the run command prompt    #
+# Alt+F4        ;Close window                   # 
+#                                               #
+# Ctrl+Shitf++	;Increase font size             #
+# Ctrl+-        ;Decrease font size             #
+# Ctrl+7        ;turn terminal                  #
+# Ctrl+H        ;Display hidden files           #
+# Ctrl+C        ;Keyboard interrupt             #
+# Ctrl+D        ;echo <<-EOF                    #
+# Ctrl+Z        ;Stop the process[background]   #   
+# Ctrl+/        ;Send SIGQUIT 3 [foreground]    #
+# Ctrl+S        ;Interrupt console output       #
+# Ctrl+Q        ;Recovery console output        #
+# Ctrl+L        ;clear                          #
+#                                               #
+#################################################
+
+
+

@@ -1,0 +1,408 @@
+###########################################################
+### % RISC-V指令扩展(CSR指令)
+###########################################################
+CSRRW(Atomic Read/Write CSR)
+CSRRW RD, CSR, RS1
+crrw t6, mscratch, t6       % t6 = mscratch; mscratch = t6
+___________________________________________________________
+31:0            19:15       14:12   11:7    6:0
+csr             rs1         funct3  rd     opcode
+12              5           3       5       7
+___________________________________________________________
+source/dest     source      CSRRW   dest    SYSTEM
+1 % CSRRW先读出“CSR”中的值，将其按“XLEN位”的宽度进行“零扩展(zero-extend)”
+  后写入“RD”；   然后将“RS1”中的值写入“CSR”。
+2 % 以上两步操作以“原子性(atomically)”方式完成
+3 % 如果“RD”是“x0”，则不对“CSR”执行读的操作。
+4 % 伪指令+++++++++++Base Instruction(Write CSR)
+  csrw csr, rs  <=> csrrw x0, csr, rs
+
+
+CSRRS(Atomic Read and Set Bits in CSR)
+CSRRS RD, CSR, RS1  
+csrrs x5, mie, x6           % x5 = mie; mie |= x6;
+1 % CSRRS先读出“CSR”中的值，将其按“XLEN位”的宽度进行“零扩展(zero-extend)”
+  后写入“RD”； 然后逐个检查“RS1”中的值，如果某一位为“1”则对“CSR”的对应位
+  置“1”，否则保持不变。
+2 % 2 % 以上两步操作以“原子性(atomically)”方式完成
+3 % 伪指令++++++++++Base Instruction(Read CSR)
+  csrr rd, csr <=> csrrs rd, csr, x0
+
+
+
+###########################################################
+### % RISC-V(Arithmetic Instruction) 算术运算指令
+###########################################################
+% (ADD)加法指令语法构成 (  add x1, x2, x3  )
+    -One    =operation by name
+    -two    =operand getting result("destination")
+    -three  =1st operand for operation("source1")
+    -four   =2st operand for operation("source2")
+0 % (ADD)加法 RISC-V 与 C语言对比
+    add x1, x2, x3  # (in RISC-V) =>x1=x2+x3
+    a = b + c       # (in C)
+    ---where C variables <==> RISC-V Registers are:
+    a<=>x1, b<=>x2, c<=>x3
+1 % (SUB)减法 RISC-V 与 C语言对比
+    sub x1, x2, x3  # (in RISC-V) =>x1=x2-x3
+    a = b - c       # (in C)
+    ---where C variables <==> RISC-V Registers are:
+    a<=>x1, b<=>x2, c<=>x3
+
+
+2 % "LUI(Load Upper Immediate)"指令采用U-type,用于构造20立即数
+lui x5, 0x12345     % x5 = (0x12345<<12)
+imm[31:12]      rd[11:7]        opcode[6:0]
+20bit           5bit            7bit
+LUI指令会构造一个32bits的立即数，这个立即数的高20位对应指令中的imm，
+低12位清零。这个立即数作为结果存放在“RD”中。
+% 利用LUI+ADDI来为寄存器加载一个大数(0x12345678)
+lui x1, 0x12345         % x1 = 0x12345000
+addi x1, x1, 0x678      % x1 = 0x12345678
+% 利用LUI+ADDI来为寄存器加载一个大数(0x12345FFF)
+lui x1, 0x12346         % x1 = 0x12346000
+addi x1, x1, -1         % x1 = 0x12345FFF
+
+
+3 % LI(Load Immediate)是一个伪指令
+汇编器会根据IMM的实际情况自动生成正确的真实指令(instruction)
+li x5, 0x12345678       % x5 = 0x2345678
+
+
+4 % AUIPC(构造程序的相对地址), AUIPC指令采用“U-type”
+auipc x5, 0x12345       % x5 = (0x12345<<12) + PC
+imm[31:12]      rd[11:7]        opcode[6:0]
+20bit           5bit            7bit
+和LUI指令类似，AUIPC指令也会构造一个32bits的立即数，
+这个立即数的高20位对应指令中的imm，低12位清零。
+但是和LUI不同的是，AUIPC会先将这个立即数和PC值相加，
+将相加的结果存放在“RD”中。
+
+
+5 % LA(Load Address)是一个伪指令
+具体编程时给出需要加载的label，编译器会根据实际情况选用
+AUIPC和其它指令自动生成正确的指令序列。
+常用于加载一个函数或者变量的地址。
+
+
+
+###########################################################
+### % RISC-V(Logic operation instruction) 逻辑运算指令
+###########################################################
+Language                  C          RISC-V
+Logical operations    operators   instructions
+Bit-by-bit AND            &           and
+Bit-by-bit OR             |           or
+Bit-by-bit XOR            ^           xor
+% Register:
+    and x5, x6, x7      # x5 = x6 & x7
+% Immediate:
+    andi x5, x6, 3      # x5 = x6 & 3
+
+
+0 % XOR(eXclusive OR “异或”)
+两个bit值不同(异)则取值为“1”, 两个bit值相同则取值为“0”
+
+
+1 % NOT伪指令(按位取反~) % not x5, x6
+  % 对RS的值按位取反，结果存入在RD中。
+NOT RD, RS      <=>     XORI RD, RS, -1     
+  % 对下面两组二进制数进行异或操作
+1 0 1 0 1 0 1 0
+1 1 1 1 1 1 1 1     (-1)
+_______________
+0 1 0 1 0 1 0 1
+
+
+
+###########################################################
+### % RISC-V(Shift operation instruction) 移位运算指令
+###########################################################
+0 % 逻辑移位运算
+  (无论是逻辑左移还是逻辑右移，补足的都是“0”)
+% Language                  C          RISC-V
+% Shift left logical       <<          sll
+% Shift right logical      >>          srl
+SLL  RD, RS1, RS2    (RD = RS1<<RS2)     % sll  x5, x6, x7
+SRL  RD, RS1, RS2    (RD = RS1>>RS2)     % srl  x5, x6, x7
+SLLI RD, RS1, RS2    (RD = RS1<<RS2)     % slli x5, x6, 3
+SRLI RD, RS1, RS2    (RD = RS1>>RS2)     % srli x5, x6, 3
+
+
+1 % 算术移位运算
+  (算术右移按照符号位补足)
+SRA RD, RS1, RS2     (RD = RS1>>RS2)     % sra x5, x6, x7
+_______________
+1 0 0 1 0 0 0 0         % (0x90)算术右移1位
+1 1 0 0 1 0 0 0         % 算术右移1位结果(算术右移按照符号位补足)
+_______________
+0 0 0 1 0 0 0 0         % (0x40)算术右移1位
+0 0 0 0 1 0 0 0         % 算术右移1位结果(算术右移按照符号位补足)
+
+% 算术右移立即数(Shift Right Arithmetic Immediate)  
+SRAI RD, RS1, IMM    (RD = RS1>>IMM)     % sra x5, x6, 3
+
+
+
+###########################################################
+### % RISC-V(Load and storage instruction) 加载存储指令
+###########################################################
+% 内存读指令(Load)  ,将数据从内存中读入寄存器 [Read]
+% 内存写指令(Store) ,将数据从寄存器写出到内存 [Write]
+
+
+lb  x5, 40(x6)
+————————————————————
+LB  RD, IMM(RS1)    % Load Byte, 从内存中读取一个8bits的数据到“RD”中,
+                    % (内存地址 = RS1+IMM), 数据在保存到“RD”之前会执行
+                    % “sign-extended”符号扩展
+lbu x5, 40(x6)
+————————————————————
+LBU RD, IMM(RS1)    % Load Byte Unsigned, 从内存中读取一个8bits的数据到“RD”中,
+                    % (内存地址 = RS1+IMM), 数据在保存到“RD”之前会执行
+                    % "zero-extended"
+lh  x5, 40(x6)
+————————————————————
+LH  RD, IMM(RS1)    % Load Halfword, 从内存中读取一个16bits的数据到“RD”中,
+                    % (内存地址 = RS1+IMM), 数据在保存到“RD”之前会执行
+                    % “sign-extended”符号扩展
+lhu x5, 40(x6)
+————————————————————
+LHU RD, IMM(RS1)    % Load Halfword Unsigned, 从内存中读取一个16bits的数据到“RD”中,
+                    % (内存地址 = RS1+IMM), 数据在保存到“RD”之前会执行
+                    % "zero-extended"
+lw  x5, 40(x6)
+————————————————————
+LW  RD, IMM(RS1)    % Load Word, 从内存中读取一个32bits的数据到“RD”中,
+                    % (内存地址 = RS1+IMM)
+注意！ IMM给出的偏移量范围是[-2048, 2047]
+
+
+sb  x5, 40(x6)
+————————————————————
+SB  RS2, IMM(RS1)   % Store Byte, 将“RS2”寄存器中低8bits数据写出到内存中, 
+                    % (内存地址 = RS1+IMM)
+sh  x5, 40(x6)
+————————————————————
+SH  RS2, IMM(RS1)   % Store Halfword, 将“RS2”寄存器中低16bits数据写出到内存中,
+                    % (内存地址 = RS1+IMM)
+sw  x5, 40(x6)
+————————————————————
+SW  RS2, IMM(RS1)   % Store Word, 将“RS2”寄存器中32bits数据写出到内存中,
+                    % (内存地址 = RS1+IMM)
+注意！ IMM给出的偏移量范围是[-2048, 2047]
+
+
+_________________________________________________
+0 % Load from Memory to Register(存储器->寄存器)
+C code, c语言代码
+    int A[100];
+    g = h + A[3];
+Using Load Word(lw) in RISC-V:
+    lw x10, 12(x15)     # Reg x10 gets A[3]
+    add x11, x12, x10   # g = h + A[3]
+% Note: 
+    x15 ->base register(pointer to A[0])
+    x12 ->offset in bytes 
+_________________________________________________
+1 % Store form Register to Memory(寄存器->存储器)
+C code, c语言代码
+    int A[100];
+    A[10] = h + A[3]
+Using Store Word(sw) in RISC-V:
+    lw  x10, 12(x15)    # Temp reg x10 gets A[3]
+    add x10, x12, x10   # Temp reg x10 gets h + A[3]
+    sw  x10, 40(x15)    # A[10] = h + A[3]
+% Note:
+    x15    ->base register(pointer)
+    12, 40 ->offsets in bytes
+x15+2 and x15+40 must be multiples of 4
+
+
+
+###########################################################
+### % RISC-V(Conditional branch instruction) 条件分支指令
+###########################################################
+BEQ  RS1, RS2, IMM      % Branch if EQual. 比较RS1和RS2的值, 
+beq  x5, x6, 100        % 如果相等,则执行路径跳转到一个新的地址
+
+BNE  RS1, RS2, IMM      % Branch if Not Equal. 比较RS1和RS2的值,
+bne  x5, x6, 100        % 如果不相等,则执行路径跳转到一个新的地址
+
+BLT  RS1, RS2, IMM      % Branch if Greater than or Equal. 按照“有符号方式”
+blt  x5, x6, 100        % 比较RS1和RS2的值,如果RS1 < RS2,则执行路径跳转到一个新的地址
+
+BLTU RS1, RS2, IMM      % Branch if Less Than(Unsigned). 按照“无符号方式”
+bltu x5, x6, 100        % 比较RS1和RS2的值,如果RS1 < RS2,则执行路径跳转到一个新的地址
+
+BGE  RS1, RS2, IMM      % Branch if Greater than or Equal. 按照“有符号方式”
+bge  x5, x6, 100        % 比较RS1和RS2的值,如果RS1 >= RS2,则执行路径跳转到一个新的地址
+
+BGEU RS1, RS2, IMM      % Branch if greater than or Equal(Unsigned). 按照“无符号方式”
+bge  x5, x6, 100        % 比较RS1和RS2的值,如果RS1 >= RS2,则执行路径跳转到一个新的地址
+_______________________________________________________________
+(31:25)        [24:20]  [19:15]  [14:13]    (11:7)       [6:0]
+imm[12|10:5]   RS2      RS1      funct3     imm[4:1|11]  opcode
+_______________________________________________________________
+跳转的目标计算方法：先将 IMM*2，符号位扩展后和PC值相加得到最终的目标地址，
+所以跳转范围是以PC为基准，+/-4KB左右(-4096, 4094)
+具体编程时， 不会直接写IMM，而是用标号代替，交由链接器来最终决定“IMM”的值
+“IMM*2”就为了指令对齐。
+
+
+
+###########################################################
+### % RISC-V(Unconditional jump instruction) 无条件跳转指令
+###########################################################
+JAL(Jump And Link)
+% JAL RD, LABEL
+% jal x1, Label
+_________________________________________________
+31:12                   11:7    6:0
+imm[20|10:1|11|19:12]   rd      opcode
+_________________________________________________
+1 % JAL指令使用J-type编码格式
+2 % JAL指令用于调用子程序(subroutine/function)
+3 % 子程序的地址计算方法： 首先对“20bits”宽的“IMM*2”后进行sign-extended，
+  然后将符号扩展后的值和“PC”的值相加。
+  因此该函数跳转的范围是以“PC”为基准，上下“-1MB, +1MB”
+4 % JAL指令的下一条指令的地址写入“RD”，保存为返回地址
+5 % 实际编程时，用Label给出跳转的目标，具体“IMM”值由编译器和链接器最终负责生成。
+
+
+JALR(Jump And Link Register)
+% JALR RD, IMM(RS1)
+% jalr x0, 0(x5)
+_________________________________________________
+31:20       19:15   14:12       11:7    6:0
+imm[11:0]   [rs1]   [funct3]    [rd]    [opcode]
+_________________________________________________
+1 % JALR指令使用I-type编码格式
+2 % JALR指令用于调用子程序(subroutine/function)
+3 % 子程序地址的计算方法： 首先对“12bits”宽的“IMM”进行sign-extended，
+  然后将符号刘扩展后的值和“RS1”的值相加，得到最终的结果后将其最低位设置为“0”
+  (确保地址按2字节对齐)。因此该函数跳转地址的范围是以“RS1”为基准，
+  上下(+/-2KB).
+4 % JALR指令的下一条指令的地址写入“RD”，保存为返回地址。
+
+
+
+###########################################################
+### % RISC-V  条件分支指令例程 ++++++++++++++++++++++++++++++
+###########################################################
+0 % RISC-V: if-statment instruction is 条件判断指令
+% BEQ表示相等跳转到标号处执行处理，否则顺序执行下面的语句
+% New Instructions: beq, bne, blt, bltu, bge, j
+beq register1, register2, Lable
+f->x10, g->x11, h->x12, i->x13, j->x14
+# C语言
+    if (i == j)
+        f = g + h;
+    esle
+        f = g -h;
+# RISC-V语法
+    bne x13, x14, Else
+    add x10, x11, x12
+    j Exit
+    Else:
+        sub x10, x11, x12
+    Exit:
+        
+
+1 % C Loop Mapped to RISC-V Assembly
+___________________________________________________________
+    int a[20];
+    int i;
+    int sum = 0;
+    for (i = 0; i < 20; i++)
+        sum += A[i];
+___________________________________________________________
+add  x9, x8, x0             # x9=&A[0]，给寄存器x9赋数组A【0】的地址
+add  x10, x0, x0            # sum=0
+add  x11, x0, x0            # i=0
+addi x13, x0, 20            # x13=20，x13赋循环次数值为20
+Loop:
+    bge  x11, x13, Done     # bge大于等于指令
+    lw   x12, 0(x9)         # x12=A[i]，A[i]值从内存中装载到寄存器x12中
+    add  x10, x10, x12      # sum+=
+    addi x9, x9, 4          # &A[i+1]
+    addi x11, x11, 1        # i++
+    j Loop
+___________________________________________________________
+
+###########################################################
+### % RISC-V  R型指令
+### % R-Format for register-register arithmetic operations
+###########################################################
+% RISC-V汇编 & 机器码
+add x18, x19, x10   =>00000 01010 10011 000 10010 0110011
+%   7bits   5bits   5bits    3bits    5bits   7bits
+%   funct7  rs2     rs1      funct3   rd      opcode
+    00000   01010   10011    000      10010   0110011
+    add     rs2=10  rs1=19   add      rd=18   Reg-Reg
+###########################################################
+### % RISC-V  I型指令
+### % I-Format for register-immediate arithmetic 
+### % operations and loads
+###########################################################
+% 12bits        5bits       3bits       5bits       7bits
+% Imm[11:0]     rs1         funct3      rd          opcode
+imm[11:0] can hold values in range [-2048, +2047]
+addi x15, x1, -50   =>111111001110,00001,000,01111,0010011
+111111001110    00001       000         01111       0010011
+imm=-50         rs1=1       add         rd=15       OP-Imm
+###########################################################
+### % RISC-V  S型指令
+### % S-format for stores
+###########################################################
+###########################################################
+### % RISC-V  B型指令
+### % B-format for branches(minor variant of S-format,
+### % called SB before)
+###########################################################
+###########################################################
+### % RISC-V  U型指令
+### % U-format for 20-bit upper immediate instructions
+###########################################################
+###########################################################
+### % RISC-V  J型指令
+### % J-format for jumps(minor variant of U-format,
+### % called UJ before)
+###########################################################
+
+
+
+###########################################################
+### % RISC-V (stack->栈)
+###########################################################
+% 栈也是存储系统的一部分，因此需要一个指向的的寄存器
+% 来保存它的基地址，sp寄存器(x2)就是RISC-V中的栈寄存器
+我们通常沿着高地址向低地址的方向来扩展栈空间，通过递减
+sp值为断压入(PUSH)数据，通过递增sp来弹出(POP)数据。
+Leaf:
+    addi sp, sp, -8     # adjust stack for 2 items
+    sw s1, 4(sp)        # save s1 for use afterwards
+    sw s0, 0(sp)        # save s0 for use afterwards
+    
+    add s0, a0, a1      # f = g + h
+    add s1, a2, a3      # s1 = i + j
+    sub a0, s0, s1      # return value (g+h) - (i+j)
+    
+    lw s0, 0(sp)        # restore register s0 for caller
+    lw s1, 4(sp)        # restore register s1 for caller
+    addi sp, sp, 8      # adjust stack to delete 2 items
+    jr ra               # jump back to calling routine
+
+
+
+###########################################################
+### % RISC-V 指令寻址模式
+###########################################################
+所谓寻址模式指的是：指令中“定位操作数oprand”或者是“地址”的方式。
+0 % 立即数寻址   操作数是指令本身的一部分    addi x5, x6, 20
+2 % 寄存器寻址   操作数放在寄存器中         add  x6, x6, x7
+3 % 基址寻址     操作数在内存中            sw   x5, 40(x6)
+4 % PC相对寻址   (PC+立即数)相加          beq  x5, x6, 100
+
+
+
