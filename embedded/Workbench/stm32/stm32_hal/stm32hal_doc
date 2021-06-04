@@ -1,0 +1,67 @@
+###########################################################
+### % hal_库编程思想
+###########################################################
+0 % STM32的外设寄存器组织形式：
+  % 基于(基地址 + 寄存器偏移)
+  
+  
+1 % GPIO寄存器表
+typedef struct {
+    GPIOx_MODER     (0x40000, 0000)      % gpio模式寄存器
+    GPIOx_OTYPER    (0x40000, 0004)      % gpio输出类型寄存器
+    GPIOx_OSPEEDR   (0x40000, 0008)      % gpio输出速度寄存器
+    GPIOx_PUPDR     (0x40000, 000C)      % gpio上拉/下拉寄存器
+    GPIOx_IDR       (0x40000, 0010)      % gpio输入数据寄存器
+    GPIOx_ODR       (0x40000, 0014)      % gpio输出数据寄存器
+    GPIOx_BSRRL     (0x40000, 0018)      % gpio置位/复位寄存器(低16位)
+    GPIOx_BSRRH     (0x40000, 001A)      % gpio置位/复位寄存器(高16位)
+    GPIOx_LCKR      (0x40000, 001C)      % gpio配置锁定寄存器
+    GPIOx_AFR[2]    (0x40000, 0020)      % gpio复用功能配置寄存器
+} GPIO_TypeDef;
+
+#define GPIOA_BASE  ((0x40000, 0000) + 0x0000U)
+#define GPIOA       ((GPIO_TypeDef *) GPIOA_BASE)
+
+typedef struct {
+    uint32_t Pin;       //指定在配置的GPIO引脚
+    uint32_t Mode;      //指定所选引脚的工作模式
+    uint32_t Pull;      //指定所选引脚上拉或下拉激活
+    uint32_t Speed;     //指定所选引脚的速度
+    uint32_t Alternate; //要连接到所选引脚的外设
+} GPIO_InitTyeDef;
+
+void HAL_GPIO_Init(GPIO_TypeDef* GPIOx, GPIO_InitTyeDef* GPIO_InitStruct);
+
+// % GPIO初始化例程
+int main(void)
+{
+    GPIO_InitTypeDef InitStruct;
+    
+    // 开启GPIOH时钟，使用外设时都要先开启它的时钟
+    RCC->AHB4ENR |= (1<<7);
+    
+    // 选择要控制的引脚
+    InitStruct.Pin = GPIO_PIN_10;
+    
+    // 设置引脚输出类型为推挽输出
+    InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    
+    // 设置引脚为上拉模式
+    InitStruct.Pull = GPIO_PULLUP;
+    
+    // 设置引脚速率为低速模式
+    InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    
+    // 调用库函数，使用上面配置的GPIO_InitStructctue初始化GPIO
+    HAL_GPIO_Init(GPIOH< &InitStruct);
+}
+
+
+
+
+
+
+
+
+
+
