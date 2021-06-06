@@ -53,14 +53,261 @@ int main(void)
     InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     
     // 调用库函数，使用上面配置的GPIO_InitStructctue初始化GPIO
-    HAL_GPIO_Init(GPIOH< &InitStruct);
+    HAL_GPIO_Init(GPIOH, &InitStruct);
 }
 
 
 
 
+###########################################################
+### % STM32F7_CMSIS
+###########################################################
+0 % 首先是cmsis开头的 
+(cmsis_armcc.h, cmsis_armclang.h, cmsis_compiler.h, cmsis_gcc.h)四个文件，
+这四个文件用于兼容不同的编译器，并为“core_cm7.h”文件提供一些编译符号和汇编级的内核接口。
+% 位置：STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Include\
 
 
+1 % 接下来是core_cm7.h文件，
+它对Cortex-M7的内核硬件进行了简单的封装，并向上级文件提供了一些简单的接口，
+位置：STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Include\
+
+
+2 % 在Cortex-M7内核之上的是STM32H7xx的设备硬件，对应于文件stm32h7xx.h，
+并在stm32h7xx.h中细分，STM32H743ZIT6对应于stm32h743xx.h。
+stm32h743xx.h的内容大致类似于标准外设库的stm32fxxx.h，是对STM32外设的定义。
+位置：STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Device\ST\STM32H7xx\Include
+
+
+3 % 与它处于同级的还有一个启动文件startup_stm32h743xx.s，
+这是一个汇编代码文件，为程序的直接入口，负责分配所有异常处理
+函数及中断服务函数的入口地址，也负责在复位及硬件就绪后调用main函数。
+位置:STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm
+
+
+4 % system_stm32h7xx.c/.h是一组介于底层硬件和上层HAL库之间的文件启动，
+其中源文件使用了一些由stm32h7xx.h与core_cm7.h提供的定义，如SCB，RCC。
+并提供了一个系统初始化函数SystemInit()，用于初始化硬件。这个函数在main()函数调用前
+由startup_stm32h7xx.s调用(在上图中，startup_stm32h7xx.s第243行导入，246、247行调用，
+之后的248、249行为main函数调用)
+位置：system_stm32h7xx.c:STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates
+
+
+
+
+############################################################
+### % HAL库的文件
+############################################################
+% HAL全称Hardware Abstract Layer，意为硬件抽象层
+HAL库的文件全部位于STM32Cube_FW_H7_V1.3.0\Drivers\STM32H7xx_HAL_Driver，
+除了HAL库文件以外，这个位置还有一个用户手册，这个手册是STM32H7全系列通用的。
+
+0 % 在HAL库中，由一些文件不属于STM32H7外设驱动部分，
+  他们是stm32h7xx_hal.c/.h、stm32h7xx_hal_cortex.c/.h
+  以及stm32_hal_legacy.h、stm32h7xx_hal_def.h。
+% stm32h7xx_hal.c/.h是HAL驱动文件，主要负责初始化HAL库的运行环境，向上层提供HAL管理的API。
+% stm32h7xx_hal_cortex.c/.h是Cortex内核的驱动文件，对Cortex-M7内核外设进行了封装，向上
+  层提供了MPU、NVIC、SysTick的管理API。
+% stm32_hal_legacy.h为提供给STM32CubeMX用于兼容老版本HAL库的文件，仅仅重新定义了一些宏和
+  常量，使HAL库便于维护。stm32h7xx_hal_def.h定义了一些HAL的宏、枚举和结构。
+
+
+1 % 另外，有一个文件比较特殊，stm32h7xx_hal_conf_template.h，
+  conf表示configuration，是一个配置文件，template表示这是一个模板。
+  在实际使用中，这个文件要被复制到用户文件夹，并重命名为stm32h7xx_hal_conf.h。
+  文件中定义了作为STM32H7外设编译开关的宏，时钟适应参数、系统参数、以太网参数等。
+  其中最关键的是HAL_PPP_MODULE_ENABLED的一系列宏。stm32h7xx_hal_conf.h将包
+  含在HAL库所有外设驱动文件中，用于选择是否编译对应的文件。
+以GPIO驱动文件为例，保持搜索_MODULE_ENABLED，可以看到stm32_hal_gpio.c中有
+两个结果，这两个结果匹配了一个#ifdef-#endif对，#ifdef-#endif对之间是全部的GPIO驱动程序。
+
+
+2 % stm32h7xx_hal_gpio.c中并未直接包含stm32h7xx_hal_conf.h，
+  但它包含了stm32h7xx_hal.h(上方第二张图124行处)，
+  而stm32h7xx_hal.h中又包含了stm32h7xx_hal_conf.h(下图46行处)
+
+
+3 % 顺带一提，在STM32H7的HAL库中，某一外设的驱动文件stm32h7xx_hal_ppp.c/.h
+  并不是由源文件直接包含头文件，而是以stm32h7xx_hal_ppp.c->stm32h7xx.h->
+  stm32h7xx_hal_conf.h->stm32h7xx_hal_ppp.h的方式间接包含(其中->表示前者包含后者)
+
+
+
+4 % 在STM32H7外设驱动文件中，有4组文件不属于HAL(硬件抽象层)，
+即stm32h7xx_ll_delayblock.c/.h、stm32h7xx_ll_sdmmc.c/.h、
+stm32h7xx_ll_fmc.c/.h、stm32h7xx_ll_usb.c/.h，
+它们属于Lower Layer(底层)，这与HAL的思想有关，这四种硬件在STM32H7
+上全部位于底层工作，本身不适合直接抽象，或者其具有的功能不适合直接抽象。
+DelayBlock在QSPI或者SDMMC的SD功能启用的前提下才能启用；SDMMC外设
+可控制SD卡和MMC两种差别较大的硬件；FMC可以控制NOR-Flash/PSRAM、
+NAND_Flash、SDRAM这几类差别较大的硬件；USB复杂且需要中间件，
+于是就先进行底层封装，再进行抽象。其他外设的功能较单一或者不同
+功能较为类似，所以不需要底层封装可以直接进行抽象。
+
+
+5 % 除上述的三类文件之外，其余文件均为对应外设的功能级驱动文件。
+一个外设的驱动文件一定包含stm32h7xx_hal_ppp.c/.h，
+同时可能会包含stm32h7xx_hal_ppp_ex.c/.h，后者是前者的拓展。
+通常情况下，凡是要使用某一外设的驱动文件，直接包含所有头文件，
+并将所有源文件添加至工程中即可。
+
+
+6 % 至于用户文件，以Nucleo开发板的工程模板为例，
+位置：STM32Cube_FW_H7_V1.3.0\Projects\STM32H743ZI-Nucleo\Templates，
+不过仅仅关注其中的src、inc两个文件夹。
+文件夹中共7个文件：main.c/.h、stm32h7xx_it.c/.h、
+stm32h7xx_hal_msp.c、system_stm32h7xx.c、stm32h7xx_hal_conf.h。
+
+
+
+7 % stm32h7xx_hal_msp.c是MCU Sopport Package(MCU支持包)的源文件，
+  用户需要在其中重写某些外设的MSP程序，主要内容和原理暂不说明。
+
+
+
+
+
+
+############################################################
+### % 句柄（handle）
+############################################################
+% STM32的标准库中，句柄是一种特殊的指针，通常指向结构体！
+
+
+0 % 在STM32的标准库中，假设我们要初始化一个外设（这里以USART为例），
+  我们首先要初始化他们的各个寄存器。在标准库中，这些操作都是利用固件库
+  结构体变量+固件库Init函数实现的：
+USART_InitTypeDef USART_InitStructure;
+USART_InitStructure.USART_BaudRate = bound;//串口波特率
+USART_InitStructure.USART_WordLength = USART_WordLength_8b;//字长为8位数据格式
+USART_InitStructure.USART_StopBits = USART_StopBits_1;//一个停止位
+USART_InitStructure.USART_Parity = USART_Parity_No;//无奇偶校验位
+USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;//无硬件数据流控制
+USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//收发模式
+USART_Init(USART3, &USART_InitStructure); //初始化串口1
+% 可以看到，要初始化一个串口，需要：
+    1、对六个位置进行赋值，
+    2、然后引用Init函数，
+USART_InitStructure并不是一个全局结构体变量，而是只在函数内部的局部变量，
+初始化完成之后，USART_InitStructure就失去了作用。
+
+
+1 % 而在HAL库中，同样是USART初始化结构体变量，我们要定义为全局变量。
+UART_HandleTypeDef UART1_Handler;
+% 右键查看结构体成员
+typedef struct
+{
+	  USART_TypeDef                 *Instance;        /*!< UART registers base address        */
+	  UART_InitTypeDef              Init;             /*!< UART communication parameters      */
+	  uint8_t                       *pTxBuffPtr;      /*!< Pointer to UART Tx transfer Buffer */
+	  uint16_t                      TxXferSize;       /*!< UART Tx Transfer size              */
+	  uint16_t                      TxXferCount;      /*!< UART Tx Transfer Counter           */
+	  uint8_t                       *pRxBuffPtr;      /*!< Pointer to UART Rx transfer Buffer */
+	  uint16_t                      RxXferSize;       /*!< UART Rx Transfer size              */
+	  uint16_t                      RxXferCount;      /*!< UART Rx Transfer Counter           */  
+	  DMA_HandleTypeDef             *hdmatx;          /*!< UART Tx DMA Handle parameters      */ 
+	  DMA_HandleTypeDef             *hdmarx;          /*!< UART Rx DMA Handle parameters      */
+	  HAL_LockTypeDef               Lock;             /*!< Locking object                     */
+	  __IO HAL_UART_StateTypeDef    State;            /*!< UART communication state           */
+	  __IO uint32_t                 ErrorCode;        /*!< UART Error code                    */
+}UART_HandleTypeDef;
+% 我们发现，与标准库不同的是，该成员不仅:
+    1、包含了之前标准库就有的六个成员（波特率，数据格式等），
+    2、还包含过采样、（发送或接收的）数据缓存、数据指针、串口
+     DMA 相关的变量、各种标志位等等要在整个项目流程中都要设置的各个成员。
+
+
+
+
+2 % 该 UART1_Handler就被称为串口的句柄，它被贯穿整个USART收发的流程，比如开启中断：
+HAL_UART_Receive_IT(&UART1_Handler, (u8 *)aRxBuffer, RXBUFFERSIZE);
+% 比如后面要讲到的MSP与Callback回调函数：
+void HAL_UART_MspInit(UART_HandleTypeDef *huart);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+% 在这些函数中，只需要调用初始化时定义的句柄UART1_Handler就好。
+
+
+
+
+3 % MSP函数; MSP: MCU Specific Package 单片机的具体方案
+MSP是指和MCU相关的初始化，引用一下正点原子的解释，个人觉得说的很明白：
+我们要初始化一个串口，首先要设置和 MCU 无关的东西，例如波特率，奇偶校验，停止
+位等，这些参数设置和 MCU 没有任何关系，可以使用 STM32F1，也可以是 STM32F2/F3/F4/F7
+上的串口。而一个串口设备它需要一个 MCU 来承载，例如用 STM32F4 来做承载，PA9 做为发
+送，PA10 做为接收，MSP 就是要初始化 STM32F4 的 PA9,PA10，配置这两个引脚。
+% 所以 HAL驱动方式的初始化流程就是：
+  HAL_USART_Init()—>HAL_USART_MspInit() ，
+% 先初始化与 MCU无关的串口协议，再初始化与 MCU 相关的串口引脚。
+
+在 STM32 的 HAL 驱动中HAL_PPP_MspInit()作为回调，被 HAL_PPP_Init()函数所调用。
+当我们需要移植程序到 STM32F1平台的时候，我们只需要修改 HAL_PPP_MspInit 函数内容而
+不需要修改 HAL_PPP_Init 入口参数内容。
+
+在HAL库中，几乎每初始化一个外设就需要设置该外设与单片机之间的联系，比如IO口，是否复用
+等等，可见，HAL库相对于标准库多了MSP函数之后，移植性非常强，但与此同时却增加了代码量
+和代码的嵌套层级。可以说各有利弊。
+
+% 同样，MSP函数又可以配合句柄，达到非常强的移植性：
+void HAL_UART_MspInit(UART_HandleTypeDef *huart);
+% 入口参数仅仅需要一个串口句柄，这样有能看出句柄的方便。
+
+
+
+4 % Callback函数
+类似于MSP函数，个人认为Callback函数主要帮助用户应用层的代码编写。
+还是以USART为例，在标准库中，串口中断了以后，我们要先在中断中判断是否是接收中断，
+然后读出数据，顺便清除中断标志位，然后再是对数据的处理，这样如果我们在一个中断函数
+中写这么多代码，就会显得很混乱：
+void USART3_IRQHandler(void)                	//串口1中断服务程序
+{
+	u8 Res;
+	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+	{
+		Res =USART_ReceiveData(USART3);	//读取接收到的数据
+		/*数据处理区*/
+		}   		 
+     } 
+} 
+% 而在HAL库中，进入串口中断后，直接由HAL库中断函数进行托管：
+void USART1_IRQHandler(void)                	
+{ 
+	HAL_UART_IRQHandler(&UART1_Handler);	//调用HAL库中断处理公用函数
+	/***************省略无关代码****************/	
+}
+HAL_UART_IRQHandler这个函数完成了判断是哪个中断（接收？发送？或者其他？），
+然后读出数据，保存至缓存区，顺便清除中断标志位等等操作。
+
+% 比如我提前设置了，串口每接收五个字节，我就要对这五个字节进行处理。
+% 在一开始我定义了一个串口接收缓存区：
+/*HAL库使用的串口接收缓冲,处理逻辑由HAL库控制，接收完这个数组就会调用HAL_UART_RxCpltCallback进行处理这个数组*/
+/*RXBUFFERSIZE=5*/
+u8 aRxBuffer[RXBUFFERSIZE];
+在初始化中，我在句柄里设置好了缓存区的地址，缓存大小（五个字节）
+/*该代码在HAL_UART_Receive_IT函数中，初始化时会引用*/
+	huart->pRxBuffPtr = pData;//aRxBuffer
+    huart->RxXferSize = Size;//RXBUFFERSIZE
+    huart->RxXferCount = Size;//RXBUFFERSIZE
+% 则在接收数据中，每接收完五个字节，HAL_UART_IRQHandler才会执行一次Callback函数：
+
+
+% void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+% 在这个Callback回调函数中，我们只需要对这接收到的五个字节（保存在aRxBuffer[]中）
+  进行处理就好了，完全不用再去手动清除标志位等操作。
+  所以说Callback函数是一个应用层代码的函数，我们在一开始只设置句柄里面的各个参数，
+  然后就等着HAL库把自己安排好的代码送到手中就可以了~
+
+综上，就是HAL库的三个与标准库不同的地方之个人见解。
+个人觉得从这三个小点就可以看出HAL库的可移植性之强大，并且用户可以完全不
+去理会底层各个寄存器的操作，代码也更有逻辑性。但与此带来的是复杂的代码量，
+极慢的编译速度，略微低下的效率。看怎么取舍了。
+
+
+
+
+
+############################################################
+### % hal库使用
+############################################################
 
 
 
