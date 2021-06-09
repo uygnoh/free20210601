@@ -214,8 +214,23 @@ ACTIVE0(0xE000_E300)    % 中断 0‐31 的活动状态寄存器,共 32 个状�
                         % 中断#n 活动状态(异常号 16+n)
 _________________________________________________________________
 
+
                    
-                        
+############################################################
+### % NVIC(Nested vectored interrupt controller)
+############################################################
+_____________________________________________________________________
+__IO uint32_t ISER[8]; /* Interrupt Set Enable Register           */
+__IO uint32_t ICER[8]; /* Interrupt Clear Enable Register         */
+__IO uint32_t ISPR[8]; /* Interrupt Set Pending Register          */
+__IO uint32_t ICPR[8]; /* Interrupt Clear Pending Register        */
+__IO uint32_t IABR[8]; /* Interrupt Active bit Register           */
+__IO uint8_t  IP[240]; /* Interrupt Priority Register (8Bit wide) */
+__O  uint32_t STIR;    /* Software Trigger Interrupt Register     */
+_____________________________________________________________________  
+
+
+                      
 ############################################################
 ### % AIRC（Application Interrupt and Reset ControlRegister）
 ############################################################
@@ -229,18 +244,9 @@ NVIC->ISER[]    =
 
 
 ############################################################
-### % NVIC(Nested vectored interrupt controller)
+### % STM32外部中断编号
 ############################################################
-_____________________________________________________________________
-__IO uint32_t ISER[8]; /* Interrupt Set Enable Register           */
-__IO uint32_t ICER[8]; /* Interrupt Clear Enable Register         */
-__IO uint32_t ISPR[8]; /* Interrupt Set Pending Register          */
-__IO uint32_t ICPR[8]; /* Interrupt Clear Pending Register        */
-__IO uint32_t IABR[8]; /* Interrupt Active bit Register           */
-__IO uint8_t  IP[240]; /* Interrupt Priority Register (8Bit wide) */
-__O  uint32_t STIR;    /* Software Trigger Interrupt Register     */
-_____________________________________________________________________
-
+[50] TIM5       % TIM5全局中断(0x0000_0108)
 
 
 
