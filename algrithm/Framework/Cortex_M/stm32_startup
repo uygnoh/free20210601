@@ -38,8 +38,8 @@ __initial_sp
   4 从C语言的角度来看，变量的地址，数组的地址，函数的入口地址本质上并无区别。
   
   
-% 开辟堆空间，主要用于动态内存分配，也就是用 malloc, calloc, realloc等函数分配的变量空间在堆上。
-% 这里定义的是数据段
+% 开辟堆空间，主要用于动态内存分配，也就是用 malloc, calloc, realloc
+% 等函数分配的变量空间在堆上。这里定义的是数据段
 Heap_Size   EQU     0x00000200
             AREA    HEAP, NOINIT, READWIRTE, ALIGN=3
 __heap_base
@@ -111,7 +111,7 @@ Reset_Handler   PROC
     LDR R1, [R0]            ;[R0]存放的就是reset_handler的地址，取出的地址送给R1，这个地址有可能是0x20000000左右 0x08000004左右。
     LSRS R1, R1, #24        ;将reset_handler的地址向右移动24位，就剩高8位移动到低8位。
     LDR R2, =0x1F
-    CMP R1, R2              ;如果相等， 则说明是比串口启动
+    CMP R1, R2              ;如果相等， 则说明是串口启动
     BNE ApplicationStart    ;不相等则跳转到ApplicationStart处执行。
 
 ApplicationStart
