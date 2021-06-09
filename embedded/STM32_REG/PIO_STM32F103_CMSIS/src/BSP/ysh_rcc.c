@@ -1,4 +1,4 @@
-#include "reg_rcc.h"
+#include "ysh_rcc.h"
 
 void rcc_init(void)
 {

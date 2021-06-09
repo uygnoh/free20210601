@@ -50,8 +50,8 @@
 #include "misc.h" /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
 
 /* customize header file */
-#include "common.h"
-#include "reg_rcc.h"
+#include "ysh_common.h"
+#include "ysh_rcc.h"
 
 
 

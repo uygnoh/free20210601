@@ -1,5 +1,5 @@
-#ifndef _COMMON_H
-#define _COMMON_H
+#ifndef __YSH_COMMON_H__
+#define __YSH_COMMON_H__
 #include "stm32f10x.h"
 
 
