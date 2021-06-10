@@ -1,19 +1,7 @@
-###########################################################
-### % OepnOCD for stlink 0
-###########################################################
-1 % OepnOCD 配置文件
-OpenOCD支持ST-Link的三个版本，分别是ST-LINK, ST-LINK/V2, ST-LINK/V2-1
-配置文件要引用对应的ST-LINK配置，可以通过 /lsusb/ 命令查看所使用的ST-LINK的ID确定版本
-版本                  配置文件                       ID
-ST-LINK         interface/stlink-v1.cfg         0483:3744
-ST-LINK/V2      interface/stlink-v2.cfg         0483:3748
-ST-LINK/V2-1    interface/stlink-v2-1.cfg       0483:374b
-排除权限问题后，如果还出现open failed错误，那么需要检查ST-LINK版本是否对上了。
-% openocd -f board/st_nucleo_f4.cfg
-% openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg
-
-
-2 % OpenOCD rules
+############################################################
+###  % (OpenOCD安装)(OpenOCD设置规则)
+############################################################
+sudo apt-get install openocd
 #cd openocd/share/openocd/contrib/
 # 60-openocd.rules
 # Copy this file to /etc/udev/rules.d/
@@ -21,35 +9,35 @@ ST-LINK/V2-1    interface/stlink-v2-1.cfg       0483:374b
 
 
 ###########################################################
-% OpenOCD for ST_Link 1
+### % OepnOCD 配置文件
 ###########################################################
-% sudo apt-get install openocd
-git clone https://github.com/texane/stlink.git
-apt-get install cmake libusb-1.0
-cd stlink/
-make
-cp st-flash /usr/bin
-cp ~/stlink/etc/udev/rules.d/49-stlinkv2-1.rules /etc/udev/rules.d
+% OpenOCD支持ST-Link的三个版本，
+  分别是ST-LINK, ST-LINK/V2, ST-LINK/V2-1配置文件要引用对应的
+  ST-LINK配置，可以通过 “lsusb”命令 查看所使用的ST-LINK的ID确定版本
+___________________________________________________________
+ST-LINK         interface/stlink-v1.cfg         0483:3744
+ST-LINK/V2      interface/stlink-v2.cfg         0483:3748
+ST-LINK/V2-1    interface/stlink-v2-1.cfg       0483:374b
+___________________________________________________________
+% 排除权限问题后，如果还出现open failed错误，那么需要检查ST-LINK版本是否对上了。
 
 
-___________________________________________________________             
-% (49-stlinkv2.rules) 添加规则，其中OWNER 修改为你的用户名
-sudo cp 49-stlinkv2.rules  /etc/udev/rules.d/
-SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="3748",  \
-MODE:="0666", SYMLINK+="stlinkv2_%n" ,OWNER="ysh"
 
+############################################################
+### % OepnOCD连接STM32开发板
+############################################################
+openocd -f board/st_nucleo_f4.cfg
+openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg
 
-% 让系统识别新的规则
-sudo udevadm control --reload-rules
-sudo udevadm trigger
 
 
 ###########################################################
-% OpenOCD_GDB
+## % OpenOCD与GDB互相通信
 ###########################################################
-
+% OpenOCD连接STM32目标板
 1.openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg
 
+% arm-none-eabi-gdb调试STM32目标板
 2.arm-none-eabi-gdb blink.elf
 	(gdb)	target remote localhost:3333
 	(gdb)	monitor reset
@@ -57,11 +45,6 @@ sudo udevadm trigger
 	(gdb)	load
 
 
-_______________
-% 串口调试软件安装
-sudo apt-get install minicom 
-sudo minicom -s
-Serial Device: /dev/ttyUSB0
 
 
 
@@ -174,5 +157,7 @@ USE_STDPERIPH_DRIVER
 	 __ASM volatile ("strexb %0, %2, [%1]" : "=&r" (result) : "r" (addr), "r" (value) );
 	 __ASM volatile ("strexh %0, %2, [%1]" : "=&r" (result) : "r" (addr), "r" (value) );
 修改完成后，保存！注意，请再选中工程项目，刷新F5，再一次编译
+
+
 
 

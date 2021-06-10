@@ -142,22 +142,23 @@ sudo apt-get -y install automake
 sudo apt-get -y install autoconf
 sudo apt-get -y install libtool 
 # sudo apt-get -y install cryptsetup
-# _____________________________
+# 
 sudo apt-get -y install sdcc
 sudo apt-get -y install kicad
 sudo apt-get -y install freecad
 sudo apt-get -y install openscad
 sudo apt-get -y install mcu8051ide
+# 
+sudo apt-get -y install fvwm
+sudo apt-get -y install rox-filer
+sudo apt-get -y install smplayer
+sudo apt-get -y install xchm
+sudo apt-get -y install dia
+sudo apt-get -y install cmus 
+sudo apt-get -y install openocd
 # _____________________________
-# sudo apt-get -y install fvwm
-# sudo apt-get -y install rox-filer
-# sudo apt-get -y install smplayer
-# sudo apt-get -y install xchm
-# sudo apt-get -y install dia
-# sudo apt-get -y install cmus 
-# _____________________________
+# % 以下的软件需要手动安装(2020/06/06)
 # sudo apt-get -y install qemu
-# sudo apt-get -y install openocd*
 # sudo apt-get -y install vscode
 # sudo apt-get -y install platformio
 # sudo apt-get -y install stm32cubeide

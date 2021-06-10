@@ -3,13 +3,13 @@
 void rcc_init(void)
 {
     /* 开启“AFIO”时钟(辅助功能IO时钟使能) */
-    RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
+    RCC->APB2ENR |= (uint32_t)RCC_APB2ENR_AFIOEN;
 
     /* 开启“GPIOC”时钟 */
-    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+    RCC->APB2ENR |= (uint32_t)RCC_APB2ENR_IOPCEN;
 
     /* 开启“通用定时器2”时钟 */
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+    RCC->APB1ENR |= (uint32_t)RCC_APB1ENR_TIM2EN;
 }
 
 
