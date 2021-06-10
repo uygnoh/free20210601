@@ -1,0 +1,51 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/include",
+                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS",
+                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/BSP",
+                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/USR",
+                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/STM32LIBS/inc",
+                "/home/freeysh/.platformio/packages/framework-cmsis@2.50501.200527/CMSIS/Include",
+                "/home/freeysh/.platformio/packages/framework-cmsis-stm32f1/Include",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/include",
+                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS",
+                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/BSP",
+                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/USR",
+                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/STM32LIBS/inc",
+                    "/home/freeysh/.platformio/packages/framework-cmsis@2.50501.200527/CMSIS/Include",
+                    "/home/freeysh/.platformio/packages/framework-cmsis-stm32f1/Include",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=50101",
+                "STM32F103xB",
+                "STM32F1",
+                "STM32F10X_MD",
+                "USE_STDPERIPH_DRIVER",
+                "F_CPU=72000000L",
+                ""
+            ],
+            "compilerPath": "/home/freeysh/.platformio/packages/toolchain-gccarmnoneeabi@1.70201.0/bin/arm-none-eabi-gcc",
+            "compilerArgs": [
+                "-mthumb",
+                "-mcpu=cortex-m3",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

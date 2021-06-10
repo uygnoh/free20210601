@@ -60,24 +60,31 @@ int main(void)
 ; Please visit documentation for the other options and examples
 ; https://docs.platformio.org/page/projectconf.html
 
+[platformio]
+include_dir = include
+
+
+
 [env:genericSTM32F103C8]
 platform        = ststm32
 board           = genericSTM32F103C8
 framework       = cmsis
-;下载和调试设置
+
+
+; 指定STM32链接脚本位置
+board_build.ldscript = STM32F103C8TX_FLASH.ld
+
+
+; 下载和调试设置
 upload_protocol = stlink 
 debug_tool      = stlink
-;头文件包含，宏定义       
+
+; 编译选项标志     
 build_flags     = -Isrc/BSP               
                   -Isrc/USR
                   -Isrc/STM32LIBS/inc
                   -D STM32F10X_MD
-                  -D USE_STDPERIPH_DRIVER    
-;stm32f10x.h    
-;#ifdef USE_STDPERIPH_DRIVER
-;  #include "stm32f10x_conf.h"
-;#endif
-
+                  -D USE_STDPERIPH_DRIVER
 
 
 

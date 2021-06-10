@@ -14,9 +14,9 @@
             "command": "make clean"
         },
         {
-            "label": "STM32_Download",
+            "label": "STM32_MAKE_CLEAN_DOWNLOAD",
             "type": "shell",
-            "command": "make; openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c 'program output/main.bin exit 0x08000000'"
+            "command": "make clean; make OptLIB=0 OptSRC=0 all tshow; openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c 'program output/main.bin exit 0x08000000'"
         }
     ]
 }

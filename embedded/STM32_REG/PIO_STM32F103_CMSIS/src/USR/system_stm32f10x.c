@@ -1001,7 +1001,7 @@ static void SetSysClockTo72(void)
 
   if ((RCC->CR & RCC_CR_HSERDY) != RESET)
   {
-    HSEStatus = (uint32_t)0x01;
+    HSEStatus = (uint32_t)0x01F;
   }
   else
   {

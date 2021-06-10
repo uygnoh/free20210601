@@ -3,7 +3,6 @@
 int main(void)
 {
     rcc_init();
-    //nvic_init();
     gpio_init();
 
     while (1)
