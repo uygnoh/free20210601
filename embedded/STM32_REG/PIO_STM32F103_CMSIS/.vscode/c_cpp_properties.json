@@ -9,7 +9,7 @@
             "name": "PlatformIO",
             "includePath": [
                 "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/include",
-                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS",
+                "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src",
                 "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/BSP",
                 "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/USR",
                 "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/STM32LIBS/inc",
@@ -21,7 +21,7 @@
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
                     "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/include",
-                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS",
+                    "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src",
                     "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/BSP",
                     "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/USR",
                     "/home/freeysh/Documents/GitHub/embedded/STM32_REG/PIO_STM32F103_CMSIS/src/STM32LIBS/inc",

@@ -1,47 +1,47 @@
-# public_makefile              
-# ===============
+### 公用的Makefile文件             
+ 
+###_____________________________________________________________________________
+### 建议优化发布版本的设置： -O3
+### 建议优化调试版本的设置： -O0
+# -O0 无需优化，减少编译时间，使调试产生预期效果
+# -O1 优化，减少代码大小和执行时间，而不增加编译时间
+# -O2 优化，与“O1”相比减少代码执行时间，增加编译时间
+# -O3 优化，打开所有优化，进一步增加编译时间
+# -Os 针对大小进行优化，启用通常不增加代码大小的所有“-O2”优化和其他代码大小优化
+### 有效参数:
+# OptLIB=0  --> 使用 -O0 设置优化库文件
+# OptLIB=1  --> 使用 -O1 设置优化库文件
+# OptLIB=2  --> 使用 -O2 设置优化库文件
+# OptLIB=3  --> 使用 -O3 设置优化库文件（默认）
+# OptLIB=s  --> 使用 -Os 设置优化库文件
+# OptSRC=0  --> 使用 -O0 设置优化用户文件
+# OptSRC=1  --> 使用 -O1 设置优化用户文件
+# OptSRC=2  --> 使用 -O2 设置优化用户文件
+# OptSRC=3  --> 使用 -O3 设置优化用户文件
+# OptSRC=s  --> 使用 -Os 设置优化用户文件
+# OptSRC=4  --> 使用 -O3 设置优化源文件, 使用define RELEASE_PUBLIC进行条件编译（默认）
+### 例子：
+# make OptLIB=0 OptSRC=0 all tshow
+###_____________________________________________________________________________
 
-#This file is included in the general Makefile, the libs Makefile and the src Makefile
-#Different optimize settings for library and source files can be realized by using arguments
-#Compiler optimize settings:
-# -O0 no optimize, reduce compilation time and make debugging produce the expected results.
-# -O1 optimize, reduce code size and execution time, without much increase of compilation time.
-# -O2 optimize, reduce code execution time compared to ‘O1’, increase of compilation time.
-# -O3 optimize, turns on all optimizations, further increase of compilation time. 
-# -Os optimize for size, enables all ‘-O2’ optimizations that do not typically increase code size and other code size optimizations.
-#Recommended optimize settings for release version: -O3
-#Recommended optimize settings for debug version: -O0
-#Valid parameters :
-# OptLIB=0  --> optimize library files using the -O0 setting
-# OptLIB=1  --> optimize library files using the -O1 setting
-# OptLIB=2  --> optimize library files using the -O2 setting
-# OptLIB=3  --> optimize library files using the -O3 setting(default)
-# OptLIB=s  --> optimize library files using the -Os setting
-# OptSRC=0  --> optimize user files using the -O0 setting
-# OptSRC=1  --> optimize user files using the -O1 setting
-# OptSRC=2  --> optimize user files using the -O2 setting
-# OptSRC=3  --> optimize user files using the -O3 setting
-# OptSRC=s  --> optimize user files using the -Os setting
-# OptSRC=4  --> optimize source files using the -O3 setting,                 \
-#           --> conditional compiling by use of define RELEASE_PUBLIC (default)
-# all       --> build all
-# libraries --> build libraries only
-# user      --> build user only
-# clean     --> clean project
-# display   --> show optimize settings
-#Example:
-# % make OptLIB=3 OptSRC=0 all tshow
 
+
+### 读取当前目录的绝对路径，并保存在“TOP”中
 TOP=$(shell readlink -f "$(dir $(lastword $(MAKEFILE_LIST)))")
+
+
+### 编译所生成的文件名
 PROGRAM=main
 
-#Adjust TypeOfMCU in use, see CMSIS file "stm32f10x.h"
+
+### 调整所使用的单片机类型
 #STM32F103RBT (128KB FLASH, 20KB RAM) --> STM32F10X_MD
 TypeOfMCU=STM32F10X_MD
 #STM32F103RET (512KB FLASH, 64KB RAM) --> STM32F10X_HD
 #TypeOfMCU=STM32F10X_HD
 
 
+### arm-none-eabi编译器设置
 TC              =arm-none-eabi
 CC              =$(TC)-gcc
 LD              =$(TC)-ld -v
@@ -49,29 +49,31 @@ OBJCOPY         =$(TC)-objcopy
 AR              =$(TC)-ar
 GDB             =$(TC)-gdb
 
+
+### 头文件包括
 INCLUDE	        =-I$(TOP)/include
 INCLUDE	        =-I$(TOP)/startup
 INCLUDE	        =-I$(TOP)/user
-
+### cmsis目录下的头文件包括
 CMSISDIR        =$(TOP)/cmsis
 CMSISLIB        =$(CMSISDIR)
 INCLUDE	        +=-I$(CMSISLIB)/clock_init
 INCLUDE	        +=-I$(CMSISLIB)
-
+### interrupt目录下的头文件包括
 INTERRUPTDIR    =$(TOP)/interrupt
 INTERRUPTLIB    =$(INTERRUPTDIR)
 INCLUDE         +=-I$(INTERRUPTLIB)
-
+### stm32目录下的头文件包括
 STM32DIR        =$(TOP)/stm32
 STM32LIB        =$(STM32DIR)
 INCLUDE	        +=-I$(STM32LIB)/inc
-
+### bsp目录下的头文件包括
 BSPDIR          =$(TOP)/bsp
 BSPLIB          =$(BSPDIR)
 INCLUDE	        +=-I$(BSPLIB)
 
 
-
+### STM32单片机编译选项
 COMMONFLAGS     =-g -mcpu=cortex-m3 -mthumb
 COMMONFLAGSlib  =$(COMMONFLAGS)
 
