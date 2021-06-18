@@ -37,11 +37,11 @@ int main(void)
 void ds1302_write(uchar address, uchar dat)
 {
     uchar number;
-    CE=0;
+    CE = 0;
     delayus();
     SCLK = 0;
     delayus();
-    CE=1;
+    CE = 1;
     delayus();
     for(number=0;number<8;number++)//开始传送八位地址命令
     {
@@ -65,13 +65,9 @@ void ds1302_write(uchar address, uchar dat)
     CE=0;//传送数据结束
     delayus();
 }
- 
-/*******************************************
-* 函 数 名         : ds1302_read
-* 函数功能         : 读取一个地址的数据
-* 输    入         : address
-* 输    出         : dat
-********************************************/
+
+
+// 读取一个地址的数据
 uchar ds1302_read(uchar address)
 {
     uchar number,dat,dat1;
@@ -113,17 +109,15 @@ uchar ds1302_read(uchar address)
 *******************************************/
 void ds1302_init()
 {
- 
-        ds1302_write(0x8e,0x00);//禁止写保护，就是关闭写保护功能
-        ds1302_write(write_rtc_address[0], ((19/10)<<4 | (19%10)));
-        ds1302_write(write_rtc_address[1], ((19/10)<<4 | (19%10)));
-        ds1302_write(write_rtc_address[2], ((23/10)<<4 | (23%10)));
-        ds1302_write(write_rtc_address[3], ((31/10)<<4 | (31%10)));
-        ds1302_write(write_rtc_address[4], ((12/10)<<4 | (12%10)));
-        ds1302_write(write_rtc_address[5], ((7/10)<<4 | (7%10)));
-        ds1302_write(write_rtc_address[6], ((17/10)<<4 | (17%10)));
-        ds1302_write(0x8e,0x80); //打开写保护功能
- 
+    ds1302_write(0x8e,0x00);//禁止写保护，就是关闭写保护功能
+    ds1302_write(write_rtc_address[0], ((19/10)<<4 | (19%10)));
+    ds1302_write(write_rtc_address[1], ((19/10)<<4 | (19%10)));
+    ds1302_write(write_rtc_address[2], ((23/10)<<4 | (23%10)));
+    ds1302_write(write_rtc_address[3], ((31/10)<<4 | (31%10)));
+    ds1302_write(write_rtc_address[4], ((12/10)<<4 | (12%10)));
+    ds1302_write(write_rtc_address[5], ((7/10)<<4  | (7%10)));
+    ds1302_write(write_rtc_address[6], ((17/10)<<4 | (17%10)));
+    ds1302_write(0x8e,0x80); //打开写保护功能
 }
  
 //4位数码管动态显示扫描子程序

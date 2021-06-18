@@ -118,8 +118,8 @@ bit lcd1602_busy()
 void delay_ms(uint16_t z)
 {
     uint16_t x,y;
-    for(x=z;x>0;x--)
-        for(y=110;y>0;y--);
+    for(x = z; x > 0; x--)
+        for(y = 110; y > 0; y--);
 }
 
 
