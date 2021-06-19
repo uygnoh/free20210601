@@ -100,7 +100,7 @@ void delay_ms(uint16_t z)
 
 //set a character at the given position
 //在指定坐标设置字符（p_x=0~15, p_y=0~1）
-void lcd1602_char_set(uint8_t p_x, uint8_t p_y, char p_char)
+void lcd1602_char_set(uint8_t p_x, uint8_t p_y, uint8_t p_char)
 {
     uint8_t t_cmd = 0x80;
     p_x &= 0x0f;

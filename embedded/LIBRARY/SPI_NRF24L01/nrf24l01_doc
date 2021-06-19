@@ -100,8 +100,8 @@ uint8_t code TX_ADDRESS[TX_ADR_WIDTH] = {
 ### % NRF24L01(nrf24l01.c)
 ###########################################################
 /*
- * @brief   写1个字节到NRF24L01
- * @return  返回读到的数据
+ * @brief   % 写1个字节到NRF24L01
+ * @return  % 返回读到的数据
  */
 uint8_t spi_rw(uint8_t byte)
 {
