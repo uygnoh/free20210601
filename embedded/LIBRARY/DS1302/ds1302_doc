@@ -16,13 +16,11 @@
 ############################################################
 Pin_8   Vcc1        % 备用电池端
 Pin_1   Vcc2        % 5V电源。 当 “Vcc2 > Vcc1+0.2”时，由Vcc2向
-                    % DS1302供电。“Vcc2 < Vcc1”时，由Vcc1向DS1302供电
-                    
+                    % DS1302供电。“Vcc2 < Vcc1”时，由Vcc1向DS1302供电                    
 Pin_7   SCLK        % 串行时钟，输入
 Pin_6   SDA         % 数据输入输出端口
 Pin_5   CE/RST      % 复位引脚
-
-Pin_4   GND
+Pin_4   GND         % 地
 Pin_3   x2          % 外接晶振引脚
 Pin_2   x1          % 外接晶振引脚(32.768KHz)
 
@@ -54,10 +52,9 @@ DS1302中的数据，读出的数据是从最低位到最高位。
 ############################################################
 #include <reg51.h>
 #include <intrins.h>
-sbit IO     = P3^3
-sbit SCLK   = P3^4
-sbit RST    = P3^5
-unsigned char flag, second, minute, hour, week, day, month, year;
+sbit DS1302_IO  = P3^3
+sbit SCLK       = P3^4
+sbit CE         = P3^5
 
 
 // % DS1302读寄存器指令地址
