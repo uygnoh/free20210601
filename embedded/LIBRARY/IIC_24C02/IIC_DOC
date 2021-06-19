@@ -41,8 +41,16 @@ Vss             % 地
 
 
 ############################################################
-### % IIC <===> 底层基本时序
+### % IIC <===> 底层基本时序代码
 ############################################################
+#define sbit BIT
+void iic_start_signal(void);    /* % “IIC_主机” 发送起始信号 */
+BIT iic_write_byte(uint8_t dat);/* % “IIC_主机” 发送1个字节数据 */
+int8_t iic_read_byte(void);     /* % “IIC_主机” 读取1个字节数据 */
+void host_send_ack(BIT ack);    /* % “IIC_主机” 发送ack信号 */
+BIT slave_send_ack(void);       /* % “IIC_从机” 发送ack信号 */
+void iic_stop_signal(void);     /* % “IIC_主机” 发送停止信号 */
+___________________________________________________________
 /*
  * @brief   % “IIC_主机” 发送起始信号
  * @param   % None
@@ -83,7 +91,7 @@ BIT iic_write_byte(uint8_t dat)
         IIC_SCL = 0;            /* % 拉低SCL */
     }
     
-    ack = iic_ack_signal();     /* % 保存从机发送的ack信号 */
+    ack = slave_send_ack();     /* % 保存从机发送的ack信号 */
     return(ack);                /* % 返回从机的ack信号 */
 }
 
@@ -114,7 +122,7 @@ int8_t iic_read_byte(void)
 }
 
 /*
- * @brief   % “IIC_主机” 发送应答信号
+ * @brief   % “IIC_主机” 向总线发送应答信号
  * @brief   + 在第8个字节后，主机发送“1”位应答信号
  * @param   % 0-> “0”应答， “1”非应答
  * @retval  % None
@@ -130,13 +138,14 @@ void host_send_ack(BIT ack)
 }
 
 /*
- * @brief   % “IIC_从机” 向总线发发送应答信号
+ * @brief   % “IIC_从机” 向总线发送应答信号
  * @brief   + 在第8个字节后，主机释放总线，从机发送应答信号
+ * @brief   + “主机”在第9个时钟的上升沿读取从机的应答信号
  * @param   % None
  * @retval  % ack应答信号“0”
  *
  */
-BIT iic_ack_signal(void)
+BIT slave_send_ack(void)
 {
     BIT ack;
     IIC_SDA = 1;                /* % 主机释放“SDA”，为读“ack”做准备 */
@@ -168,8 +177,9 @@ void iic_stop_signal(void)
 
 
 ############################################################
-### % AT24C02_E2PROM <===> 器件地址
+### % AT24C02_E2PROM <===> 地址
 ############################################################
+% AT24C02_E2PROM器件地址
 ________________________________________
 D7   D6   D5   D4   D3   D2   D1   D0
 A6   A5   A4   A3   A2   A1   A0   R/W
@@ -179,6 +189,12 @@ ________________________________________
 // % AT24C02_E2PROM: A2~A0[000]是可编程位
 // % AT24C02_E2PROM: 最多可以放“8”个
 ________________________________________
+
+
+% AT24C02_E2PROM器件内部字节地址(256Byte)
+________________________________________
+0x00 ~ 0xFF
+
 
 
 /*
@@ -203,6 +219,8 @@ BIT e2prom_addr(uint8_t addr)
 ############################################################
 ### % AT24C02_E2PROM <===> 单个字节读写操作
 ############################################################
+uint8_t eeprom_read_byte(uint8_t icc_addr, uint8_t icc_addr_byte);
+void eeprom_write_byte(uint8_t, icc_addr, uint8_t icc_addr_byte, uint8_t dat);
 从AT24C02_E2PROM中的“00”地址处读出数据显示在LCD1602中
 再从“00”地址处的数据加“1”写回到“00”地址处。
 // % 选择性读(0x00~0xFF)， 只读取一个字节 
@@ -220,9 +238,9 @@ BIT e2prom_addr(uint8_t addr)
  * @brief   + 向“e2prom” 中写入它的器件地址和字节地址
  * @brief   + iic_addr=0x50; iic_addr_byte=0x00;
  * @brief   + AT24C02_E2PROM内部的地址为: 0x00~0xFF
- * @param   % 0-> iic_addr芯片器件地址
- * @param   + 1-> iic_addr_byte芯片器件内部的字节地址
- * @retval  % 返回“从机”发送的ack
+ * @param   % 0-> iic_addr,芯片器件地址
+ * @param   + 1-> iic_addr_byte,芯片器件内部的字节地址
+ * @retval  % 返回读取的内容
  *
  */
 uint8_t eeprom_read_byte(uint8_t icc_addr, uint8_t icc_addr_byte)
@@ -230,7 +248,7 @@ uint8_t eeprom_read_byte(uint8_t icc_addr, uint8_t icc_addr_byte)
     uint8_t dat;
     iic_start_signal();             /* % 发送起始信号 */
     iic_write_byte(icc_addr<<1);    /* % 发送器件地址, 从机应答在内部实现 */
-    iic_write_byte(icc_addr_byte);  /* % 发送器件地址的内部存储器地址 */
+    iic_write_byte(icc_addr_byte);  /* % 发送器件地址的内部存储器地址, 从机应答在内部实现 */
     iic_start_signal();             /* % 从新发送起始信号(重启总线) */
     /* % 发送器件地址, 后续操作为读操作(此时不需要器件内部存储器地址) */
     iic_write_byte((icc_addr<<1) | 0x01); 
@@ -241,16 +259,16 @@ uint8_t eeprom_read_byte(uint8_t icc_addr, uint8_t icc_addr_byte)
 }
 
 /*
+ * @brief   % 向“e2prom” 中写入“1”个字节
  * @brief   % 向“e2prom” 中写入它的器件地址和字节地址和数据
- * @param   % 0-> iic_addr芯片器件地址
- * @param   + 1-> iic_addr_byte芯片器件内部的字节地址
- * @param   + 2-> dat要写入的数据
+ * @param   % 0-> iic_addr,芯片器件地址
+ * @param   + 1-> iic_addr_byte,芯片器件内部的字节地址
+ * @param   + 2-> dat,要写入的数据
  * @retval  % None
  *
  */
 void eeprom_write_byte(uint8_t, icc_addr, uint8_t icc_addr_byte, uint8_t dat)
 {
-    uint8_t dat;
     iic_start_signal();             /* % 发送起始信号 */
     iic_write_byte(icc_addr<<1);    /* % 发送器件地址, 从机应答在内部实现 */
     iic_write_byte(icc_addr_byte);  /* % 发送器件地址的内部存储器地址, 从机应答在内部实现 */
@@ -258,6 +276,117 @@ void eeprom_write_byte(uint8_t, icc_addr, uint8_t icc_addr_byte, uint8_t dat)
     iic_stop_signal();              /* % 发送结束信号后，器件才会把数据进行擦写操作， */
                                     /* % 搬运到非易失区，这段时间里面器件不再响应主机的操作 */
 }
+
+
+
+
+############################################################
+### % AT24C02_E2PROM <===> 多个字节读写操作
+############################################################
+void eeprom_read_more_byte
+(uint8_t icc_addr, uint8_t icc_addr_byte, uint8_t *buf, uint8_t len);
+/*
+ * @brief   % 向“e2prom”中的字节地址读取“多个”个字节数据
+ * @brief   + 向“e2prom” 中写入它的器件地址和字节地址
+ * @brief   + iic_addr=0x50; iic_addr_byte=0x00;
+ * @brief   + “iic_addr_byte”以为基址，读取多个字节数据,保存到*buf
+ * @brief   + 每读取出一个字节，内部基址自动加“1”
+ * @param   % 0-> iic_addr,芯片器件地址
+ * @param   + 1-> iic_addr_byte,芯片器件内部的字节地址
+ * @param   + 2-> *buf,读取的字节放存储的地主
+ * @param   + 3-> len,读取字节的长度
+ * @retval  % None
+ *
+ */
+void eeprom_read_more_byte
+(uint8_t icc_addr, uint8_t icc_addr_byte, uint8_t *buf, uint8_t len)
+{
+    iic_start_signal();             /* % 发送起始信号 */
+    iic_write_byte(icc_addr<<1);    /* % 发送器件地址, 从机应答在内部实现 */
+    iic_write_byte(icc_addr_byte);  /* % 发送器件地址的内部存储器地址, 从机应答在内部实现 */
+    iic_start_signal();             /* % 从新发送起始信号(重启总线) */
+    /* % 发送器件地址, 后续操作为读操作(此时不需要器件内部存储器地址) */
+    iic_write_byte((icc_addr<<1) | 0x01); 
+    while (len > 1)
+    {
+        *buf++ = iic_read_byte();   /* % 每读一个字节，存储到*buf中，然后buf加“1” */
+        host_send_ack(0);           /* % 每读一个字节，主机发送ACK=“0” */
+        len--;
+    }
+    *buf = iic_read_byte();         /* % 从总线读取最后一个字节数据 */
+    host_send_ack(1);               /* % 最后一个字节，主机发送noACK=“1” */
+    iic_stop_signal();              /* % 发送结束信号 */
+}
+
+
+uint8_t buf[5];
+uint8_t buf[20];
+/* % 从eeprom中的0x50, 0x00,地址处读出“5”个字节数据放入到*buf中 */
+eeprom_read_more_byte(0x50, 0x00, buf, 5);
+/* % 把*buf中的“5”个字节数据转换成16进制并保存到*str中 */
+buf_to_str(buf, str, 5);
+/* % 在lcd1602的第1行，第一列显示*str中的字符 */
+lcd1602_show_str(0, 0, str);
+/* % 把*buf中所有的数据加“1” */
+for (i = 0; i < sizeof(buf); i++)
+{
+    buf[i] = buf[i] + 1;
+}
+
+/*
+ * @brief   % 向“e2prom” 中写入“多个”字节
+ * @brief   % 向“e2prom” 中写入它的器件地址和字节地址和数据
+ * @param   % 0-> iic_addr,芯片器件地址
+ * @param   + 1-> iic_addr_byte,芯片器件内部的字节地址
+ * @param   + 2-> *buf,要写入的数据缓冲区
+ * @param   + 3-> len,要写入的数据字节个数
+ * @retval  % None
+ *
+ */
+void eeprom_write_more_byte
+(uint8_t, icc_addr, uint8_t icc_addr_byte, uint8_t *buf, uint8_t len)
+{
+    while (len > 0)
+    {
+    iic_start_signal();             /* % 发送起始信号 */
+    iic_write_byte(icc_addr<<1);    /* % 发送器件地址, 从机应答在内部实现 */
+    iic_write_byte(icc_addr_byte++);/* % 每写入一个字节，地址加加，从机应答在内部实现*/
+    iic_write_byte(*buf++);         /* % 向eeprom中写入一个字节, 从机应答在内部实现 */
+    iic_stop_signal();              /* % 发送结束信号后，器件才会把数据进行擦写操作， */
+                                    /* % 搬运到非易失区，这段时间里面器件不再响应主机的操作 */
+    len--;
+    delay_ms(10);                   /* % 延时10ms，保证数据都写入eeprom */
+    }
+
+}
+/* % 或 <===> 查询等待方法 */
+void eeprom_write_more_byte
+(uint8_t, icc_addr, uint8_t icc_addr_byte, uint8_t *buf, uint8_t len)
+{
+    uint32_t i = 50000;
+    while (len > 0)
+    {
+        do {
+            iic_start_signal();             
+            if (!(iic_write_byte(icc_addr<<1))); /* % 读取从机应答信号，为“0”，跳出*/
+                break;
+            iic_stop_signal(); 
+        } while(i--);   
+        iic_write_byte(icc_addr_byte++);
+        iic_write_byte(*buf++);         
+        iic_stop_signal();                                                
+        len--;                   
+    }
+
+}
+/* % 向eeprom中的0x50, 0x00,的地址处写入“5”个字节数据，以*buf为基地址 */
+eeprom_write_more_byte(0x50, 0x00, buf, 5);
+/* % 向eeprom中的0x50, 0x00,的地址处读取“5”个字节数据，并保存到*buf中 */
+eeprom_read_more_byte(0x50, 0x00, buf, 5);
+/* % 把*buf中的“5”个字节数据转换成16进制并保存到*str中 */
+buf_to_str(buf, str, 5);
+/* % 在lcd1602的第1行，第一列显示*str中的字符 */
+lcd1602_show_str(0, 0, str);
 
 
 
@@ -322,6 +451,36 @@ void num_to_str(uint8_t dat, uint8_t *str)
 }
 
 
+
+/*
+ * @brief   % 数据缓冲区中的数据转换成16进制数据显示，并保存在str[]中
+ * @param   % 0-> *buf 要处理的缓冲区
+ * @param   % 1-> *str 处理数据放置的地方
+ * @param   % 2-> len 要处理数据的长度
+ * @retval  % None
+ *
+ */
+/* % *str++先执行后面的操作，最后再加“加” */
+void buf_to_str(uint8_t *buf, uint8_t *str, uint8_t len)
+{
+    uint8_t tmp, i;
+    for(i = 0; i < len; i++)
+    {
+        tmp = buf[i] >> 4;          /* % 取高4位 */
+        if (tmp <= 9) 
+            *str++ = tmp + '0';     /* % <=9 */
+         else
+            *str++ = tmp + '7';     /* % 或者(tmp-10+'A') */
+            
+         tmp = buf[i] & 0x0F;       /* % 取低4位 */
+         if (tmp <= 9)
+            *str++ = tmp + '0';     /* % <=9 */
+         else
+            *str++ = tmp + '7';     /* % 或者(tmp-10+'A') */
+         *str++ = ' ';              /* % 加入一个空格 */
+    }
+    *str = '\0';                    /* % 字符串结束标志“\0” */
+}
 
 
 
