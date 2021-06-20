@@ -25,9 +25,9 @@ void lcd1602_write_cmd(uint8_t cmd)
     P0 = cmd;                       //先送人(command数据)
     delay_ms(2);                    //稍作延时，等待数据稳定
     EN = 1;                         //然后在把使能信号拉高，数据开始写入LCD1602中
-    delayms(5);                     //稍作延时，等待数据写入完成
+    delay_ms(2);                    //稍作延时，等待数据写入完成
     EN = 0;                         //之后再把使能信号拉低
-    delayms(2);                     //稍作延时
+    delay_ms(2);                    //稍作延时
 }
 
 
@@ -40,7 +40,7 @@ void lcd1602_write_dat(uint8_t dat)
     P0 = dat;                       //先送人(data数据)
     delay_ms(2);                    //稍作延时，等待数据稳定
     EN = 1;                         //然后在把使能信号拉高，数据开始写入LCD1602中
-    delay_ms(5);                    //稍作延时，等待数据写入完成
+    delay_ms(2);                    //稍作延时，等待数据写入完成
     EN = 0;                         //之后再把使能信号拉低
     delay_ms(2);                    //稍作延时
 }
