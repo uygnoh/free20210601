@@ -84,6 +84,15 @@ __________________________________
 ###########################################################
 ### % NRF24L01 <===> 底层驱动
 ###########################################################
+___________________________________________________________
+uint8_t spi_rw(uint8_t byte);
+uint8_t spi_rw_reg(uint8_t reg, uint8_t value);
+uint8_t spi_read(uint8_t reg);
+uint8_t spi_read_buf(uint8_t reg, uint8_t *pbuf, uint8_t bytes);
+uint8_t spi_write_buf(uint8_t reg, uint8_t *pbuf, uint8_t bytes);
+___________________________________________________________
+
+
 /* Description:
    Writes one byte to nRF24L01, and return the byte read
    from nRF24L01 during write, according to SPI protocol
