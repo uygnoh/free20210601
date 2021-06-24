@@ -1,0 +1,416 @@
+############################################################
+### % uart查询方式 
+############################################################
+// % uart查询方式 
+// % 4800bps (11.0592MHz)
+// % 1位起始位， 1位停止位， 8位数据位， 共10位数据
+void uart_init(void)
+{
+    PCON &= 0x7F;   // % 波特率不倍速
+    SCON  = 0x50;   // % 8位数据，可变波特率
+    TMOD &= 0x0F;   // % 清除定时器“1”模式位
+    TMOD |= 0x20;   // % 设定定时器1为8位自动重装方式
+    TL1   = 0xFA;   // % 设定定时初值
+    TH1   = 0xFA;   // % 设定定时器重装值
+    ET1   = 0;      // % 禁止定时器1中断
+    TR1   = 1;      // % 启动定时器1
+}
+
+
+// % 发送一帧数据
+void send_byte(uint8_t dat)
+{
+    SBUF = dat;
+    while(!TI)
+        TI = 0;
+}
+
+
+// % 发送一串数据
+void send_string(uint8_t *pstr)
+{
+    while (*pstr != '\0')
+    {
+        send_byte(*pstr++);
+    }
+}
+
+
+int main(void)
+{
+    while (1)
+    {
+        //send_byte('8');
+        //send_byte('\r');
+        //send_byte('\n');
+        //delay_ms(1000);
+        send_string("Hello world!");
+    }
+}
+
+
+
+############################################################
+### % printf重定向(基于Keil IDE)
+############################################################
+// % C51 Development Tools
+#include <stdio.h>
+
+char putchar(char c)
+{
+    send_byte(c);
+    return(c);
+}
+
+printf("Hello world!\r\n");
+
+
+
+
+############################################################
+### % 串行口从上位机接收一帧数据的编程实现方法
+############################################################
+// % uart中断方式接收一帧数据， 并且加“1”
+// % 再用中断方式发送出去
+uint8_t rx_dat;
+uint8_t tx_dat;
+uint8_t rx_flag = 0;
+
+ 
+// % 4800bps (11.0592MHz)
+// % 1位起始位， 1位停止位， 8位数据位， 共10位数据
+void uart_init(void)
+{
+    PCON &= 0x7F;   // % 波特率不倍速
+    SCON  = 0x50;   // % 8位数据，可变波特率
+    TMOD &= 0x0F;   // % 清除定时器“1”模式位
+    TMOD |= 0x20;   // % 设定定时器1为8位自动重装方式
+    TL1   = 0xFA;   // % 设定定时初值
+    TH1   = 0xFA;   // % 设定定时器重装值
+    ET1   = 0;      // % 禁止定时器1中断
+    ES    = 1;      // % 串行口中断打开
+    EA    = 1;      // % 打开中断总开关
+    TR1   = 1;      // % 启动定时器1
+}
+
+
+// % 发送一帧数据
+void send_byte(uint8_t dat)
+{
+    SBUF = dat;
+    while(!TI)
+        TI = 0;
+}
+
+
+// % 发送一串数据
+void send_string(uint8_t *pstr)
+{
+    while (*pstr != '\0')
+    {
+        send_byte(*pstr++);
+    }
+}
+
+// % 串行口中断服务程序
+void UART_IST(void) interrupt 4
+{
+    if (RI)
+    {
+        RI     = 0;
+        rx_dat = SBUF;
+        // % 使用查询方式的话，使用rx_flag = 1;
+        rx_flag = 1;
+        // % 使用中断方式话，使用下面这两条语句
+        //rx_dat = rx_dat + 1;
+        //SBUF   = rx_dat;
+    }
+    if (TI)
+    {
+        TI     = 0;
+    }
+}
+
+// % 使用中断方式
+int main(void)
+{
+    while (1)
+    {   
+    }
+}
+
+
+// % 使用查询方式
+int main(void)
+{
+    while (1)
+    {   // % 使用查询方式，把接收到的数据加一， 并发送出去
+        if (rx_flag == 1)
+        {
+            rx_flag = 0;
+            rx_dat = rx_dat + 1;
+            send_byte(rx_dat);
+        }
+    }
+}
+
+
+
+
+// % 上位机发送 0x01, 打开LED
+// % 上位机发送 0x00, 关闭LED
+int main(void)
+{
+    while (1)
+    {   // % 使用查询方式
+        if (rx_flag == 1)
+        {
+            rx_flag = 0;
+            switch (rx_dat)
+            {
+                case 0x00: LED = 1; // % LED灭
+                case 0x01: LED = 0; // % LED亮
+                default: break;
+            }
+        }
+    }
+}
+
+
+
+
+############################################################
+### % 单片机串行口从上位机接收一串数据的编程实现
+### % 只能接收回定长度的数据
+############################################################
+// % 接收缓冲区，接收到的数据放到此数组中
+uint8_t rx_buf[10];
+// % 接收到8字节数据，rx_flag=1
+uint8_t rx_flag;
+
+
+// % 4800bps (11.0592MHz)
+// % 1位起始位， 1位停止位， 8位数据位， 共10位数据
+void uart_init(void)
+{
+    PCON &= 0x7F;   // % 波特率不倍速
+    SCON  = 0x50;   // % 8位数据，可变波特率
+    TMOD &= 0x0F;   // % 清除定时器“1”模式位
+    TMOD |= 0x20;   // % 设定定时器1为8位自动重装方式
+    TL1   = 0xFA;   // % 设定定时初值
+    TH1   = 0xFA;   // % 设定定时器重装值
+    ET1   = 0;      // % 禁止定时器1中断
+    ES    = 1;      // % 串行口中断打开
+    EA    = 1;      // % 打开中断总开关
+    TR1   = 1;      // % 启动定时器1
+}
+
+
+// % 发送一帧数据
+void send_byte(uint8_t dat)
+{
+    SBUF = dat;
+    while(!TI)
+        TI = 0;
+}
+
+
+// % 发送一串数据
+void send_string(uint8_t *pstr)
+{
+    while (*pstr != '\0')
+    {
+        send_byte(*pstr++);
+    }
+}
+
+// % 串行口中断服务程序
+void UART_IST(void) interrupt 4
+{
+    static uint8_t rx_cnt = 0;
+    if (RI)
+    {
+        RI = 0;
+        rx_bur[rx_cnt] = SBUF;
+        rx_cnt++;
+        if (rx_cnt == 8)
+        {
+            rx_flag = 1;
+            rx_cnt  = 0;
+        }
+    }
+}
+
+
+int main(void)
+{
+    printf("Wait for Serial communication Test Start ...");
+    printf("Please Send a String of Data:");
+    while (1)
+    {
+        rx_flag = 0;
+        send_string(rx_buf);
+    }
+}
+
+
+
+############################################################
+### % 单片机串行口从上位机接收一串数据的编程实现
+### % 可以接收不定长度的数据
+############################################################
+
+// % 接收缓冲区，接收到的数据放到此数组中
+uint8_t rx_buf[10];
+// % 接收到8字节数据，rx_flag=1
+uint8_t rx_flag;
+
+
+// % 4800bps (11.0592MHz)
+// % 1位起始位， 1位停止位， 8位数据位， 共10位数据
+void uart_init(void)
+{
+    PCON &= 0x7F;   // % 波特率不倍速
+    SCON  = 0x50;   // % 8位数据，可变波特率
+    TMOD &= 0x0F;   // % 清除定时器“1”模式位
+    TMOD |= 0x20;   // % 设定定时器1为8位自动重装方式
+    TL1   = 0xFA;   // % 设定定时初值
+    TH1   = 0xFA;   // % 设定定时器重装值
+    ET1   = 0;      // % 禁止定时器1中断
+    ES    = 1;      // % 串行口中断打开
+    EA    = 1;      // % 打开中断总开关
+    TR1   = 1;      // % 启动定时器1
+}
+
+
+// % 发送一帧数据
+void send_byte(uint8_t dat)
+{
+    SBUF = dat;
+    while(!TI)
+        TI = 0;
+}
+
+
+// % 发送一串数据
+void send_string(uint8_t *pstr)
+{
+    while (*pstr != '\0')
+    {
+        send_byte(*pstr++);
+    }
+}
+
+// % 串行口中断服务程序
+void UART_IST(void) interrupt 4
+{
+    static uint8_t rx_cnt = 0;
+
+}
+
+
+int main(void)
+{
+    printf("Wait for Serial communication Test Start ...");
+    printf("Please Send a String of Data:");
+    while (1)
+    {
+        rx_flag = 0;
+        send_string(rx_buf);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################################################
+### % uart中断方式发送一帧数据
+############################################################
+// % uart中断方式
+// % 9600bps (11.0592MHz)
+// % 1位起始位， 1位停止位， 8位数据位， 共10位数据
+void uart_init(void)
+{
+    PCON &= 0x7F;   // % 波特率不倍速
+    SCON  = 0x50;   // % 8位数据，可变波特率
+    TMOD &= 0x0F;   // % 清除定时器“1”模式位
+    TMOD |= 0x20;   // % 设定定时器1为8位自动重装方式
+    TL1   = 0xFD;   // % 设定定时初值
+    TH1   = 0xFD;   // % 设定定时器重装值
+    ET1   = 0;      // % 禁止定时器1中断
+    ES    = 1;      // % 打开串行口中断
+    TR1   = 1;      // % 启动定时器1
+    EA    = 1;      // % 打开总中断
+}
+
+// % 串口中断服务程序
+void UART_ISR(void) interrupt 4
+{
+    if (TI)
+    {
+        TI = 0;
+    }
+}
+
+
+int main(void)
+{
+    uart_init();
+    while (1)
+    {
+        SBUF = 0x88;
+        delay_ms(2000);
+    }
+}
+
+
+
