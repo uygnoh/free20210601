@@ -51,6 +51,7 @@ void display_service()
     led_buf[3] = data_num%10;       // % 个位
 }
 
+
 // % 定时器0的初始化 (1毫秒, @12MHz)
 void timer0_init(void)
 {
@@ -62,7 +63,6 @@ void timer0_init(void)
     ET0   = 1;      // % 打开定时器0的中断
     TR0   = 1;      // % 启动定时器0
 }
-
 // % 定时器0的中断服务程序
 void TIME0_ISR(void) interrupt 1
 {
@@ -103,12 +103,17 @@ int main(void)
 ############################################################
 ### % 简单频率测量(测频法)
 ############################################################
+// % 计数器1，用于计数外部信号脉冲波
+// % 定时器0，用于定时1秒，到了1秒后，读取计数器1中的值
+
+
 
 
 // % 定义数码管要显示的数据
 uint8_t data_num = 0;
 
-uint8_t timer_cnt;
+// % 定义定时器0的中断次次数
+uint8_t timer0_int;
 
 
 // % 对要显示的数据进行数位分离，放入显示缓冲区
@@ -131,17 +136,16 @@ void timer0_init(void)
     ET0   = 1;                      // % 打开定时器0的中断
     TR0   = 1;                      // % 启动定时器0
 }
-
 // % 定时器0的中断服务程序
-void TIME0_ISR(void) interrupt 1
+void TIMER0_ISR(void) interrupt 1
 {
     TR0 = 0;                        // % 关闭定时器0
-    timer++;
+    timer0_int++;                   // % 定时器0，中断加“1”
     
-    if (timer_cnt >= 1000)          // % 1秒时间到
+    if (timer0_cnt >= 1000)         // % 1秒时间到
     {
-        TR1 = 0;
-        timer_cnt = 0;
+        TR1 = 0;                    // % 关闭计数器1
+        timer0_int = 0;             // % 定时器0，定时中断次数清零
         data_num = TH1*256 + TL1;   // % 获取计数器1中的数据
         TL1 = 0x00;                 // % 重新设置计数器1的初值
         TH1 = 0x00;                 // % 重新设置计数器1的初值
@@ -154,6 +158,7 @@ void TIME0_ISR(void) interrupt 1
     TRO = 1;                        // % 打开定时器0
 }
 
+
 // % 计数器1初始化
 void counter1_init(void)
 {
@@ -165,6 +170,7 @@ void counter1_init(void)
     ET1   = 1;                      // % 打开计数器1中断
     TR1   = 1;                      // % 启动计数器1
 }
+
 
 int main(void)
 {
@@ -191,7 +197,8 @@ uint8_t pwm_cnt;
 
 
 // % 设置定时器0，为工作方式1
-void timer0_init(void)  // % 100微秒@12MHz
+// % 100微秒@12MHz
+void timer0_init(void)  
 {
     TMOD &= 0xF0;       // % 设置定时器模式
     TMOD |= 0x01;       // % 设置定时器模式
@@ -201,6 +208,7 @@ void timer0_init(void)  // % 100微秒@12MHz
     ET0   = 1;          // % 打开定时器0中断
     TR0   = 1;          // % 启动定时器0
 }
+
 
 // % 定时器0中断服务程序
 void TIME0_ISR(void) interrupt 1
@@ -219,13 +227,13 @@ void TIME0_ISR(void) interrupt 1
     TR0   = 1;          // % 打开定时器1   
 }
 
+
 // % 外部中断0初始化
 void ex0_init(void)
 {
     IT0 = 1;            // % 下降沿触发方式
     EX0 = 1;            // % 打开外部中断0
 }
-
 // % 外部中断0中断服务程序
 void EX0_ISR(void) interrupt 0
 {   // % 定义一个按键，设定它为静态局部变量
