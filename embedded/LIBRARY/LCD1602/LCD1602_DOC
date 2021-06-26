@@ -224,20 +224,24 @@ void delay_ms(uint16_t z)
 ############################################################
 ### % LCD1602液晶显示整数变量和小数变量的编程实现
 ############################################################
-
 int main(void)
 {
     long dat = 12345678;    // % int32_t
-    uint8_t str[11];        // % "4294967295\0"
+    uint8_t str[CHAR_LEN];  // % "4294967295\0"
     IntergerToStr(dat, str);// % 整形转换为字符串
 }
 
+
+
 // % 给一个长整形数据，把它转换成字符串
-uint8_t IntergerToStr(long dat, uint8_t *str)
+#define DATA_TYPE   long
+#define CHAR_LEN    11
+
+uint8_t IntergerToStr(DATA_TYPE dat, uint8_t *str)
 {
     uint8_t i = 0;                  // % 字符串索引
     uint8_t len = 0;                // % 字符串长度
-    uint8_t buf[11];                // % 字符串临时缓冲区
+    uint8_t buf[CHAR_LEN];          // % 字符串临时缓冲区
     
     if (dat < 0)
     {
@@ -262,16 +266,26 @@ uint8_t IntergerToStr(long dat, uint8_t *str)
 
 
 
+############################################################
+### 
+############################################################
+// % 小数点位置固定，显示小数点方法
+float num = 1.255
+temp = num * 1000;
+lcd1602_write_dat(temp/1000 + '0');
+lcd1602_write_dat('.');
+lcd1602_write_dat(temp/100%10 + '0');
+lcd1602_write_dat(temp/10%10 + '0');
+lcd1602_write_dat(temp%10 + '0');
 
 
-
-
-
-
-
-
-
-
+// % 小数点位置不固定，显示小数点方法
+str_buf[12]={};
+float num2 = 1.255
+temp = num * 1000;
+// % 把num2中的数据转换成字符放到str_buf中
+sprintf(str_buf, "%0.4f", num2);
+lcd1602_show_string(8, 1, str_buf);
 
 
 
