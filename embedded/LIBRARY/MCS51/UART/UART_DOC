@@ -836,6 +836,7 @@ uint8_t led_data;
 uint8_t beep_data;
 uint8_t led_cnt;
 
+
 // % 9600bp @11.0592MHz
 // % 1位起始位， 1位停止位， 8位数据位， 共10位数据
 // % 使用定时器1，做为串行口的波特率发生器
@@ -885,7 +886,7 @@ void UART_ISR(void) interrupt 4
                 }
                 break;
             case 2: 
-                rx_buf[rx_buf_num] = SBUF; // % 接收1个字节的数据类型和2个字节的数据
+                rx_buf[rx_buf_num] = SBUF; // % 接收1个字节的功能码和2个字节的数据
                 rx_buf_num++;
                 if (rx_buf_num > 4)
                 {
