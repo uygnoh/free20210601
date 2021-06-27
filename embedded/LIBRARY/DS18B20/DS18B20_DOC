@@ -304,8 +304,8 @@ void TIMER0_ISR(void) interrupt 1
 int main(void)
 {
     uint16_t temp;       // % 保存接收到的温度数据
-    uint16_t temp_int;   // % 分离温度的整数
-    uint16_t temp_float; // % 分离温度的小数
+    uint16_t int_temp;   // % 正数的温度
+    uint16_t dec_temp;   // % 小数的温度
     uint8_t  str[12];    // % 保存数据转换成的字符串 ASCII
     uint8_t  len;        // % 数组索引
     
@@ -316,35 +316,345 @@ int main(void)
     
     while (1)
     {
+        // % 定时器0，1秒到时，进行温度转换
         if (flag)
         {
             flag = 0;
             ack = read_ds18b20(&temp);
             if (ack)
             {
-                temp_int    = temp >> 4;    // % 保留整数部分
-                temp_float  = temp & 0x0f;  // % 保留小数部分
-                len = IntegerToStr(temp_int, str);
-                str[len++] = '.';
-                temp_float = (temp_float*100)/16;
-                str[len++] = temp_float/10 + '0';
-                str[len++] = temp_float%10 + '0';
-                str[len] = '\0';
+                int_temp  = temp >> 4;            // % 保留整数部分
+                dec_temp  = temp & 0x0f;          // % 保留小数部分
                 
-                lcd1602_string_set(0, 0, str);
+                // % 符号位，百位， 十位， 个位 加上小数位的个位和十位共有6位
+                len = IntegerToStr(int_temp, str);
+                str[len++] = '.';                 // % 显示小数点
+                dec_temp   = (dec_temp*100)/16;   // % 保留小数点后两位(*0.0625)
+                str[len++] = dec_temp/10 + '0';   // % 小数十位
+                str[len++] = dec_temp%10 + '0';   // % 小数个位
+                
+                // % 如果字符小于6个，填充它
+                while (len < 6)
+                {
+                    str[len++] = ' ';
+                }
+                str[len] = '\0';
+                lcd1602_show_string(0, 0, str);
             }
             start_ds18b20();
         }
+
+    }
+}
+
+
+
+=====================================================main.c
+
+bit ack;
+int temp;           // % 保存温度值                     
+float tmp;          // % 定义一个临时变量为浮点数
+timer0_init();      // % 初始化定时器0 (10ms@12MHz)
+EA = 1;             // % 开启总中断
+start_ds18b20();    // % 启动ds18b20
+lcd1602_init();     // % 初始化lcd1602
+
+if (flag)
+{
+    flag = 0;                   // % 每秒更新一次温度
+    ack = read_ds18b20(&temp);  // % 读取当前温度
+    if (ack)
+    {
+        if (temp < 0)           // % 如果温度为负数
+        {
+            lcd1602_cmd(0x80);  // % 写地址
+            lcd1602_dat('-');   // % 显示负
+            temp = ~temp;       // % (temp为补码存放）取反加“1”求原码
+            temp = temp + 1;
+            tmp  = temp;
+            // % 小数点后保留2位
+            temp = tmp * 0.0625 * 100;   
+        }
+        else
+        {
+            lcd1602_cmd(0x80);  // % 写地址
+            lcd1602_dat(' ');   // % 显示空
+            tmp  = temp;        // % 正数
+            // % 把浮点数扩大100位，小数点后保留2位
+            temp = tmp * 0.0625 * 100;
+        }
+        // % 如果温度大于100度
+        if (temp >= 10000)
+        {
+            lcd1602_write_cmd(0x82);                    // % 写地址
+            lcd1602_write_dat('0' + temp/10000);        // % 百位
+            lcd1602_write_dat('0' + temp%10000/1000);   // % 十位
+            lcd1602_write_dat('0' + temp%1000/100);     // % 个位
+            lcd1602_write_dat('.');                     // % 显示“.”
+            lcd1602_write_dat('0' + temp%100/10);       // % 小数十位
+            lcd1602_write_dat('0' + temp%10);           // % 小数个位
+        }
+        // % 如果温度小于100度
+        else
+        {   // % 如果温度大于等于10度
+            if (temp >= 1000)
+            {
+                lcd1602_write_cmd(0x82);                    // % 写地址
+                lcd1602_write_dat('0' + temp%10000/1000);   // % 十位
+                lcd1602_write_dat('0' + temp%1000/100);     // % 个位
+                lcd1602_write_dat('.');                     // % 显示“.”
+                lcd1602_write_dat('0' + temp%100/10);       // % 小数十位
+                lcd1602_write_dat('0' + temp%10);           // % 小数个位
+                lcd1602_write_dat(' ');          // % 数据对齐，清除原有的显示
+            }
+            else
+            {
+                lcd1602_write_cmd(0x82);                    // % 写地址
+                lcd1602_write_dat('0' + temp%1000/100);     // % 个位
+                lcd1602_write_dat('.');                     // % 显示“.”
+                lcd1602_write_dat('0' + temp%100/10);       // % 小数十位
+                lcd1602_write_dat('0' + temp%10);           // % 小数个位
+                lcd1602_write_dat(' ');          // % 数据对齐，清除原有的显示
+                lcd1602_write_dat(' ');          // % 数据对齐，清除原有的显示
+            }
+        } 
+    }
+    start_ds18b20();                        // % 重新启动ds18b20
+}
+=====================================================
+
+
+
+############################################################
+### % 单个DS18B20的温度读取显示编程(基于4位共阴数码管显示)
+############################################################
+// % 10ms@12MHz
+void timer0_init(void)
+{
+    TMOD &= 0xF0;   // % 设置定时器模式
+    TMOD |= 0x01;   // % 设置定时器模式
+    TL0   = 0xF0;   // % 设置定时初值
+    TH0   = 0xD8;   // % 设置定时初值
+    TF0   = 0;      // % 清除TF0标志
+    ET0   = 1;      // % 打开定时器0中断
+    EA    = 1;      // % 打开总中断
+    TR0   = 1;      // % 定时器0开始计时
+}
+void TIMER0_ISR(void) interrupt 1
+{
+    static uint8_t timer0_cnt = 0;
+    TR0   = 0;
+    TL0   = 0xF0;   // % 设置定时初值
+    TH0   = 0xD8;   // % 设置定时初值
+    
+    smg_display();  // % 4位共阴极数码动态刷新
+    
+    timer0_cnt++;
+    if (timer0_cnt >= 100)
+    {
+        timer0_cnt = 0;
+        flag = 1;
+    }
+    TR0   = 1;
+}
+
+
+
+bit ack;
+int temp;           // % 保存温度值                     
+float tmp;          // % 定义一个临时变量为浮点数
+timer0_init();      // % 初始化定时器0 (10ms@12MHz)
+EA = 1;             // % 开启总中断
+start_ds18b20();    // % 启动ds18b20
+
+
+if (flag)
+{
+    flag = 0;                   // % 每秒更新一次温度
+    ack = read_ds18b20(&temp);  // % 读取当前温度
+    if (ack)
+    {
+        if (temp < 0)           // % 如果温度为负数
+        {
+            led_buf[0] = 22;    // % 显示负
+            temp = ~temp;       // % (temp为补码存放）取反加“1”求原码
+            temp = temp + 1;
+            tmp  = temp;
+            // % 小数点后保留1位, 方大10倍
+            temp = tmp * 0.0625 * 10;   
+        }
+        else
+        {
+            tmp  = temp;        // % 正数
+            // % 把浮点数扩大10倍，小数点后保留1位
+            temp = tmp * 0.0625 * 10;
+            
+            // % 如果温度大于100度
+            if (temp >= 1000)
+                led_buf[0] = temp/1000; // % 显示温度百位
+            else
+                led_buf[0] = 23;        // % 关闭数码管
+        }
+
+        // % 如果温度大于等于10度
+        if (temp >= 100)
+            led_buf[1] = temp/100%10; // % 显示温度十位
+        else
+            led_buf[1] = 23;          // % 关闭数码管                 
+        led_buf[2] = temp/10%10;      // % 显示温度个位
+        led_buf[1] = temp%10;         // % 显示温度小数位 
+   
+    }
+    start_ds18b20();                  // % 重新启动ds18b20，进行下一次转换
+}
+
+
+
+############################################################
+### SMG
+############################################################
+// % 10ms@12MHz
+void timer0_init(void)
+{
+    TMOD &= 0xF0;   // % 设置定时器模式
+    TMOD |= 0x01;   // % 设置定时器模式
+    TL0   = 0xF0;   // % 设置定时初值
+    TH0   = 0xD8;   // % 设置定时初值
+    TF0   = 0;      // % 清除TF0标志
+    ET0   = 1;      // % 打开定时器0中断
+    EA    = 1;      // % 打开总中断
+    TR0   = 1;      // % 定时器0开始计时
+}
+void TIMER0_ISR(void) interrupt 1
+{
+    static uint8_t timer0_cnt = 0;
+    TR0   = 0;
+    TL0   = 0xF0;   // % 设置定时初值
+    TH0   = 0xD8;   // % 设置定时初值
+    
+    smg_display();  // % 4位共阴极数码动态刷新
+    
+    timer0_cnt++;
+    if (timer0_cnt >= 100)
+    {
+        timer0_cnt = 0;
+        flag = 1;
+    }
+    TR0   = 1;
+}
+
+
+
+int main(void)
+{
+    uint16_t temp;       // % 保存接收到的温度数据
+    uint16_t int_temp;   // % 正数的温度
+    uint16_t dec_temp;   // % 小数的温度
+
+    
+    timer0_init();
+    start_ds18b20();
+    delay_ms(10);
+    
+    while (1)
+    {
+        // % 定时器0，1秒到时，进行温度转换
+        if (flag)
+        {
+            flag = 0;
+            ack = read_ds18b20(&temp);
+            if (ack)
+            {
+                int_temp  = temp >> 4;            // % 保留整数部分
+                dec_temp  = temp & 0x0f;          // % 保留小数部分
+                // % 保留小数点后两位(*0.0625)，小数位放大10倍
+                dec_temp   = (dec_temp*10)/16;   
+                
+                if (int_temp < 0)
+                {
+                    int_temp = -int_temp;           // % 取int_temp绝对值
+                    led_buf[0] = 22;                // % 显示“-”
+////////////////////////  在仿真中，步进0.5会多进一度     ///////////////////////
+                    if (dec_temp%10 != 0)
+                    {
+                        int_temp = int_temp-1;
+                    }
+                }
+                else
+                {
+                    if (int_temp > 100)
+                        led_buf[0] = int_temp/100;  // % 显示百位
+                    else
+                        led_buf[0] = 23;            // % 关闭这一位数码管
+                }
+                
+                if (int_temp >= 10)
+                    led_buf[1] = int_temp/10%10;    // % 显示十位    
+                else
+                    led_buf[0] = 23;                // % 关闭这一位数码管
+                led_buf[2] = int_temp%10;           // % 显示个位  
+                led_buf[3] = dec_temp;              // % 显示小数位  
+            }
+            start_ds18b20();
+        }
+
     }
 }
 
 
 
 ############################################################
-### 
+### % 读取DS1820的64位ROM码显示在液晶LCD1602并发送到串口
 ############################################################
+uint8_t rom_code[8];
+
+void read_rom_code(uint8_t *pcode)
+{
+    bit ack
+    uint8_t i;
+    ack = ds18b20_init();
+    if (ack == 0);
+    {   // % 读取ROM指令
+        ds18b20_write_dat(READ_ROM);
+        for (i = 0; i < 8; i++)
+        {   // % 读取64位ROM码
+            rom_code[i] = ds18b20_read_dat();
+        }
+    }
+}
+
+
+// % 在LCD1602上显示ROM码，低位在前，高位在后
+void lcd_show_rom_code(uint8_t *rom_code)
+{
+    uint8_t i;
+    uint8_t tmp;
+    // % 低位在前，高位在后
+    for (i = 0; i < 8; i++)
+    {
+        // % 高位
+        tmp = rom_code[i] >> 4;
+        if (tmp < 10)
+            lcd1602_write_dat(tmp + '0');
+        else
+            lcd1602_write_dat(tmp + '7'); // ABCDEF
+        // % 低位    
+        tmp = rom_code[i] & 0x0F;
+        if (tmp < 10)
+            lcd1602_write_dat(tmp + '0');
+        else
+            lcd1602_write_dat(tmp + '7'); // ABCDEF
+    }
+}
 
 
 
-
-
+int main(void)
+{
+    read_rom_code(rom_code);
+    lcd_show_rom_code(rom_code);
+    for (i = 0; i < 8; i++)
+    {
+        send_byte(rom_code[i]);
+    }
+}

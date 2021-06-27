@@ -14,8 +14,8 @@ int main(void)
     lcd1602_write_dat(0x30);        /* % 显示0 */
     lcd1602_write_cmd(0x80+0x40);   /* % 给出地址指针，第二行的第1个字符 */
     lcd1602_write_dat(0x38);        /* % 显示数字 8 */
-    lcd1602_string_set(0,0,"hello,");
-	lcd1602_string_set(4,1,"world!");
+    lcd1602_show_string(0,0,"hello,");
+	lcd1602_show_string(4,1,"world!");
 }
 
 /*******************************************************
@@ -94,69 +94,77 @@ void lcd1602_clear_all(void)
  * 输出参数: <-(0x80_忙碌状态, 否则为空闲状态)
  *
  *******************************************************/
-/* % LCD1602 忙碌检测 */
-/* % 根据规定，RS为低电平，RW为高电平时，可以读状态 */
-uint8_t lcd1602_busy(void)
+/* % lcd1602判断忙 */
+void lcd1602_busy_check(void)
 {
-    uint8_t result;
-    RS = 0;                     /* % command */
-    RW = 1;                     /* % read_status */
-    EN = 1;                     /* % 使能控制 */
-    /* % 空操作四个机器周期，给硬件反应时间 */
-    _nop_(); _nop_(); _nop_(); _nop_();
-    /* % LCD的D0－D7中，(D7＝1为忙碌，D7＝0为空闲) */
-    result = P0 & 0x80;    
-    EN ＝ 0;
-    return result;
+    uint8_t tmp = 0;
+    uint8_t status = 0;
+    P0 = 0xFF;          /* % 设置BYTE全部为高电平 */
+    RS = 0;             /* % RS为“0”, 表示“读命令” */
+    RW = 1;             /* % RW为“1”, 表示“读”*/
+    delay_us(1);        /* % 稍作延时 */
+    do {
+        EN = 1;         /* % 拉高“EN” */
+        delay_us(1);    /* % 稍作延时，等待lcd1602上的数据稳定 */
+        status = P0;    /* % 读取lcd1602上的数据 */
+        delay_us(1);    /* % 稍作延时 */
+        EN = 0;         /* % 拉低EN */
+        delay_us(1);    /* % 稍作延时 */
+        tmp++;
+        if (tmp > 128)
+            break;
+    /* % 判断BYTE端口上的数据最高位，为“1”表示忙 */
+    } while (status & 0x80);
 }
 
+
 /*******************************************************
- * 函数名称: lcd1602_char_set
- * 输入参数: p_x    ->列坐标
- * 输入参数: p_y    ->行坐标
- * 输入参数: p_char ->要写入的字符
+ * 函数名称: lcd1602_show_char
+ * 输入参数: pos_x  ->行坐标
+ * 输入参数: pos_y  ->列坐标
+ * 输入参数: t_char ->要写入的字符
  * 输出参数: <-无
  *
  *******************************************************/
-/* % set a character at the given position */
-/* % 在指定坐标设置字符（p_x=0~15, p_y=0~1） */
-void lcd1602_char_set(uint8_t p_x, uint8_t p_y, uint8_t p_char)
+/* % set a character at the givEN position */ 
+/* % 在指定坐标设置字符 (x=0~1, y=0~15) */
+void lcd1602_show_char(uint8_t pos_x, uint8_t pos_y, uint8_t t_char)
 {
-    uint8_t t_cmd = 0x80;
-    p_x &= 0x0f;
-    p_y &= 0x01;
-    t_cmd |= p_x;
-    if (p_y)
-    {
-        t_cmd |= 0x40;
-    }
-    lcd1602_write_cmd(t_cmd);
-    lcd1602_write_dat(p_char);
+    uint8_t addr = 0x80;        /* % lcd1602基地址 */
+    pos_x &= 0x01;              /* % 行地址，共有2行; 取行地址* /
+    pos_y &= 0x0f;              /* % 列地址，共有16列; 取列地址 */
+    addr  |= pos_y;             /* % 获得lcd1602列地址值 */
+    if (pos_x)                  /* % 判断lcd1602是第几行(0或1) */                    
+        addr |= 0x40;           /* % 如果是第2行的话，加“0x40” */
+    lcd1602_write_cmd(addr);    /* % lcd1602写入位置信息 */
+    lcd1602_write_dat(t_char);  /* % lcd1602写入数据信息 */
 }
 
 /*******************************************************
- * 函数名称: lcd1602_string_set
- * 输入参数: p_x        ->列坐标
- * 输入参数: p_y        ->行坐标
- * 输入参数: *p_string  ->要写入的字符串首地址
+ * 函数名称: lcd1602_show_string
+ * 输入参数: pos_x  ->行坐标
+ * 输入参数: pos_y  ->列坐标
+ * 输入参数: *pstr  ->要写入的字符串首地址
  * 输出参数: <-无
  *
  *******************************************************/
-/* % write a string from the given position */
-/* % 从指定位置开始设置字符串（p_x=0~15，p_y=0~1，p_string必须是以0结尾的字符串） */
-void lcd1602_string_set(uint8_t p_x, uint8_t p_y, const uint8_t *p_string)
+/* % write a string from the givEN position */
+/* % 从指定位置开始设置字符串 (p_x=0~1，p_y=0~15，*pstr必须是以'\0'结尾的字符串) */
+void lcd1602_show_string(uint8_t pos_x, uint8_t pos_y, const uint8_t *pstr)
 {
-    uint8_t t_x, t_y;
-    p_x &= 0x0f;
-    p_y &= 0x01;
-    for (t_y = p_y; t_y < 2; t_y++)
+    uint8_t x, y;
+    pos_x &= 0x01;
+    pos_y &= 0x0f;
+    /* % 最外层循环， 行(0, 1) */
+    for (x = pos_x; x < 2; x++) 
     {
-        for (t_x = p_x; t_x < 16 && (*p_string) != 0; t_x++)
-        {
-            lcd1602_char_set(t_x, t_y, *(p_string++));
-        }
+        /* % 内层循环， 列(0 ~ 15) */
+        for (y = pos_y; (y < 16) && ((*pstr) != 0); y++)
+            /* % 调用写一个字符串函数 */
+            lcd1602_show_char(x, y, *pstr++);
     }
 }
+
 
 
 /*******************************************************
@@ -171,6 +179,41 @@ void delay_ms(uint16_t z)
     uint16_t x,y;
     for(x = z; x > 0; x--)
         for(y = 110; y > 0; y--);
+}
+
+
+/*******************************************************
+ * 函数名称: IntergerToStr 整形数据转换为字符串
+ * 输入参数: dat ->输入的数据类型
+ * 输入参数: *str->需要处理的字符串
+ * 输出参数: <-len,字符串长度
+ *
+ *******************************************************/
+uint8_t IntergerToStr(long dat, uint8_t *str)
+{
+    uint8_t i = 0;          // % 字符串索引
+    uint8_t len = 0;        // % 字符串长度
+    uint8_t buf[6];         // % 字符串临时缓冲区和要处理的字符串长度一致
+    
+    if (dat < 0)
+    {
+        dat = -dat;        // % 如果是负数，取绝对值
+        *str++ = '-';
+        len++;
+    }
+    do {
+        buf[i++] = dat%10 + '0';  // % 反着取字符串
+        dat /= 10;
+    } while (dat > 0);
+    
+    len += i;             // % 在把字符长度放入len中
+    
+    while (i-- > 0)       // % 在把字符串反过来 
+    {
+        *str++ = buf[i];
+    }
+    *str = '\0';          // % 字符串结束加入一个“\0”                   
+    return len;          // % 返回字符串长度
 }
 
 
