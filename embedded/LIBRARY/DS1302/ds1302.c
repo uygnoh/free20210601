@@ -153,14 +153,14 @@ void display_smg_4()
     P0=0x00;
 }
  
-void delayms(uint z)//1毫秒延时
+void delay_ms(uint z)//1毫秒延时
 {
     uint x,y;
     for(x=z;x>0;x--)
         for(y=110;y>0;y--);
 }
  
-void delayus()//1微秒延时
+void delay_us()//1微秒延时
 {
     _nop_();
     _nop_();
