@@ -100,15 +100,6 @@ _______________________________________________________________________
 ############################################################
 ### % main.c
 ############################################################
-#include<reg52.h>
-#define uint16_t unsigned int
-#define uint8_t unsigned char
-
- 
-sbit RS = P2^6;
-sbit RW = P2^5;
-sbit EN = P2^7;
-
 
 int main(void)
 {
@@ -125,41 +116,6 @@ int main(void)
 	lcd1602_show_string(4,1,"world!");
 }
 
-
-
-############################################################
-### % LCD1602 <===> 底层函数
-############################################################
-/* % 单片机向LCD1602发送命令 */
-void lcd1602_write_cmd(uint8_t cmd)
-{   
-    RS  = 0;            /* % RS为“0”低电平表示要写入的是命令 */
-    RW  = 0;            /* % RW为“0”低电平表示是“写”操作 */
-    EN  = 0;            /* % EN为使能信号，关闭使能信号 */
-    BYTE = cmd;         /* % 单片机发送数据到“并行IO”端口上 */
-    delay_us(2);        /* % 稍作延时，等待数据稳定 */
-    EN  = 1;            /* % 拉高使能信号，数据开始写入LCD1602中 */
-    delay_us(2);        /* % 稍作延时，等待数据写入完成 */
-    EN  = 0;            /* % 拉低使能信号 */
-    delay_us(2);        /* % 稍作延时 */
-}
-
-
-/* % 单片机向LCD1602发送数据 */
-void lcd1602_write_dat(uint8_t dat)
-{   
-    RS  = 1;            /* % RS为“1”高电平表示要写入的是数据 */
-    RW  = 0;            /* % RW为“0”低电平表示是写信号 */
-    EN  = 0;            /* % EN为使能信号，关闭使能信号 */
-    BYTE = dat;         /* % 单片机发送数据到“并行IO”端口上 */
-    delay_us(2);        /* % 稍作延时，等待数据稳定 */
-    EN  = 1;            /* % 拉高使能信号，数据开始写入LCD1602中 */
-    delay_us(2);        /* % 稍作延时，等待数据写入完成 */
-    EN  = 0;            /* % 拉低使能信号 */
-    delay_us(2);        /* % 稍作延时 */
-}
-
-
 /* % LCD1602 初始化 */
 void lcd1602_init(void)
 {
@@ -175,76 +131,6 @@ void lcd1602_init(void)
 }
 
 
-/* % lcd1602判断忙 */
-void lcd1602_busy_check(void)
-{
-    uint8_t tmp = 0;
-    uint8_t status = 0;
-    BYTE = 0xFF;        /* % 设置BYTE全部为高电平 */
-    RS = 0;             /* % RS为“0”, 表示“读命令” */
-    RW = 1;             /* % RW为“1”, 表示“读”*/
-    delay_us(1);        /* % 稍作延时 */
-    do {
-        EN = 1;         /* % 拉高“EN” */
-        delay_us(1);    /* % 稍作延时，等待lcd1602上的数据稳定 */
-        status = BYTE;  /* % 读取lcd1602上的数据 */
-        delay_us(1);    /* % 稍作延时 */
-        EN = 0;         /* % 拉低EN */
-        delay_us(1);    /* % 稍作延时 */
-        tmp++;
-        if (tmp > 128)
-            break;
-    /* % 判断BYTE端口上的数据最高位，为“1”表示忙 */
-    } while (status & 0x80);
-}
-
-
-
-
-/* % set a character at the givEN position */ 
-/* % 在指定坐标设置字符 (x=0~15, y=0~1) */
-void lcd1602_show_char(uint8_t pos_x, uint8_t pos_y, uint8_t t_char)
-{
-    uint8_t addr = 0x80;        /* % lcd1602基地址 */
-    pos_x &= 0x0f;              /* % 列地址，共有16列; 取列地址 */
-    pos_y &= 0x01;              /* % 行地址，共有2行; 取行地址* /
-    addr  |= pos_x;             /* % 获得lcd1602地址值 */
-    if (pos_y)                  /* % 判断lcd1602是第几行(0或1) */                    
-        addr |= 0x40;           /* % 如果是第2行的话，加“0x40” */
-    lcd1602_write_cmd(addr);    /* % lcd1602写入位置信息 */
-    lcd1602_write_dat(t_char);  /* % lcd1602写入数据信息 */
-}
-
-
-/* % write a string from the givEN position */
-/* % 从指定位置开始设置字符串 (p_x=0~15，p_y=0~1，p_string必须是以'\0'结尾的字符串) */
-void lcd1602_show_string(uint8_t pos_x, uint8_t pos_y, const uint8_t *pstr)
-{
-    uint8_t x, y;
-    pos_x &= 0x0f;
-    pos_y &= 0x01;
-    /* % 最外层循环， 行(0, 1) */
-    for (y = pos_y; y < 2; y++) 
-    {
-        /* % 内层循环， 列(0 ~ 15) */
-        for (x = pos_x; (x < 16) && ((*pstr) != 0); x++)
-            /* % 调用写一个字符串函数 */
-            lcd1602_char_set(x, y, *pstr++);
-    }
-}
-
-
-
-/* ms级延时子程序 
- * (8051, 12MHZ晶振)
- */
-void delay_ms(uint16_t z)
-{
-    uint16_t x,y;
-    for(x = z; x > 0; x--)
-        for(y = 110; y > 0; y--);
-}
-
 
 ############################################################
 ### % LCD1602液晶显示整数变量和小数变量的编程实现
@@ -257,11 +143,9 @@ int main(void)
 }
 
 
-
 // % 给一个长整形数据，把它转换成字符串
 #define DATA_TYPE   long
 #define CHAR_LEN    11
-
 uint8_t IntergerToStr(DATA_TYPE dat, uint8_t *str)
 {
     uint8_t i = 0;                  // % 字符串索引
@@ -292,7 +176,7 @@ uint8_t IntergerToStr(DATA_TYPE dat, uint8_t *str)
 
 
 ############################################################
-### 
+### % 显示小数点方法
 ############################################################
 // % 小数点位置固定，显示小数点方法
 float num = 1.255
