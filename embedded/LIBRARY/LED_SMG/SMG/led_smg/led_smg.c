@@ -94,3 +94,6 @@ void smg_more_window_display(void)
         break;
     }
 }
+
+
+
