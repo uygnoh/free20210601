@@ -1,0 +1,64 @@
+############################################################
+### % 定义链表节点数据结构
+############################################################
+// 链表节点数据结构定义
+struct xLIST_ITEM
+{
+    TickType_t xItemValue;           /* 辅助值，用于帮助节点做顺序排列 */(1)
+    struct xLIST_ITEM *  pxNext;     /* 指向链表下一个节点 */(2)
+    struct xLIST_ITEM *  pxPrevious; /* 指向链表前一个节点 */(3)
+    void * pvOwner;                 /* 指向拥有该节点的内核对象，通常是TCB */(4)
+    void *  pvContainer;            /* 指向该节点所在的链表 */(5)
+};
+typedefstruct xLIST_ITEM ListItem_t; /* 节点数据类型重定义 */(6)
+
+// 链表节点初始化
+void vListInitialiseItem( ListItem_t * const pxItem )
+{
+/* 初始化该节点所在的链表为空，表示节点还没有插入任何链表 */
+    pxItem->pvContainer = NULL;(1)
+}
+
+
+
+############################################################
+### % 定义链表根节点数据结构
+############################################################
+// 链表精简节点结构体定义
+struct xMINI_LIST_ITEM
+{
+    TickType_t xItemValue;                      /* 辅助值，用于帮助节点做升序排列 */
+    struct xLIST_ITEM *  pxNext;                /* 指向链表下一个节点 */
+    struct xLIST_ITEM *  pxPrevious;            /* 指向链表前一个节点 */
+};
+typedefstruct xMINI_LIST_ITEM MiniListItem_t;  /* 精简节点数据类型重定义 */
+
+// 链表根节点数据结构定义
+typedefstruct xLIST
+{
+    UBaseType_t uxNumberOfItems;    /* 链表节点计数器 */(1)
+    ListItem_t *  pxIndex;          /* 链表节点索引指针 */(2)
+    MiniListItem_t xListEnd;        /* 链表最后一个节点 */(3)
+} List_t;
+
+
+// 链表根节点初始化
+void vListInitialise( List_t * const pxList )
+{
+    /* 将链表索引指针指向最后一个节点 */(1)
+    pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd );
+
+    /* 将链表最后一个节点的辅助排序的值设置为最大，确保该节点就是链表的最后节点 */(2)
+    pxList->xListEnd.xItemValue = portMAX_DELAY;
+
+    /* 将最后一个节点的pxNext和pxPrevious指针均指向节点自身，表示链表为空 */(3)
+    pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );
+    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd );
+
+    /* 初始化链表节点计数器的值为0，表示链表为空 */(4)
+    pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
+}
+
+
+
+
