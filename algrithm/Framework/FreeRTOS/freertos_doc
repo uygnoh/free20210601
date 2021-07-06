@@ -165,7 +165,7 @@ configUSE_RECURSIVE_MUTEXES
 
 /*
 配置为“1”时，表示使用计数信号量
-配置为“0”时，表示不使用
+配置为“0”时，表示不使用计数信号量
 */
 configUSE_COUNTING_SEMAPHORES
 
