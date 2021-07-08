@@ -3,12 +3,14 @@
 ############################################################
 #include "stm32f1xx_hal.h"
 
-#define ADVANCED_TIMx                       TIM1
+
 /* 高级定时器时钟配置 */
 #define ADVANCED_TIM_RCC_CLK_ENABLE()       __HAL_RCC_TIM1_CLK_ENABLE()
 #define ADVANCED_TIM_RCC_CLK_DISABLE()      __HAL_RCC_TIM1_CLK_DISABLE()
-#define ADVANCED_TIM_GPIO_RCCCLK_ENABLE()   \
+/* 高级定时器GPIO时钟配置 */
+#define ADVANCED_TIM_RCC_GPIO_CLK_ENABLE()                      \
     {__HAL_RCC_GPIOA_CLK_ENABLE();__HAL_RCC_GPIOB_CLK_ENABLE();}
+
 
 /* 高级定时器通道 (3个上桥臂) */
 #define ADVANCED_TIM_CH1_PORT               GPIOA
@@ -24,32 +26,27 @@
 #define ADVANCED_TIM_CH2N_PIN               GPIO_PIN_14
 #define ADVANCED_TIM_CH3N_PORT              GPIOB
 #define ADVANCED_TIM_CH3N_PIN               GPIO_PIN_15
-
 /* 高级定时器刹车功能 */
 #define ADVANCED_TIM_BKIN_PORT              GPIOB
 #define ADVANCED_TIM_BKIN_PIN               GPIO_PIN_12
 
-/* PWM频率 20K */
-#define ADVANCED_TIM_PWM_FREQ               20000
 
 /* 定义定时器预分频， 定时器实际时钟频率为： 72MHz/(ADVANCEDx_PRESCALER + 1) */
 #define ADVANCED_TIM_PRESCALER              0       /* 定时器频率为72MHz */
-
-/* 定义定时器周期，当定时器开始计数到ADVANCED_TIMx_PERIOD值并且重复计数寄存器为“0”时
-   更新定时器并生成对应事件和中断 */
-#define ADVANCED_TIM_PERIOD                 (SystemCoreClock/(ADVANCED_TIM_PRESCALER+1)/ADVANCED_TIM_PWM_FREQ)
-
 /* 定义高级定时器重复计数寄存器值 */
 #define ADVANCED_TIM_REPETITIONCOUNTER      0
 
 
-extern TIM_HandleTypeDef                    htimx_BLDC;
+/* PWM频率 20K */
+#define ADVANCED_TIM_PWM_FREQ               20000
+/* 定义定时器周期，当定时器开始计数到TIM1_PERIOD值并且重复计数寄存器为“0”时
+   更新定时器并生成对应事件和中断 */
+#define ADVANCED_TIM_PERIOD (SystemCoreClock/(ADVANCED_TIM_PRESCALER+1)/ADVANCED_TIM_PWM_FREQ)
+
+
+
+extern TIM_HandleTypeDef                    tim_bldc;   //htimx_BLDC
 extern TIM_OC_InitTypeDef                   sPWMConfig1, sPWMConfig2, sPWMConfig3;
-
-
-void ADVANCED_TIMx_Init(void);
-
-
 
 
 
@@ -63,7 +60,7 @@ void ADVANCED_TIM_MspPostInit(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
     /* 定时器通道功能引脚端口时钟使能 */
-    ADVANCED_TIM_GPIO_RCCCLK_ENABLE()
+    ADVANCED_TIM_RCC_GPIO_CLK_ENABLE();
     
     
     /* 定时器通道1功能引脚IO初始化 */
@@ -104,30 +101,32 @@ void ADVANCED_TIM_MspPostInit(void)
 }
 
 
-void ADVANCED_TIMx_Init(void)
+void TIM1_Init(void)
 {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
     
-    /* 定时器时钟开启 */
+    /* 高级定时器时钟开启 */
     ADVANCED_TIM_RCC_CLK_ENABLE();
     
-    /* 定时器引脚初始化 */
+    /* 高级定时器引脚初始化 */
     ADVANCED_TIM_MspPostInit();
     
     
-    /* 定时器PWM1配置 */
-    htimx_BLDC.Instance                     = ADVANCED_TIMx;
-    htimx_BLDC.Init.Prescaler               = ADVANCED_TIM_PRESCALER;
-    htimx_BLDC.Init.CounterMode             = TIM_COUNTERMODE_UP;
-    htimx_BLDC.Init.Period                  = ADVANCED_TIM_PERIOD-1;
-    htimx_BLDC.Init.ClockDivision           = TIM_CLOCKDIVSION_DIV1;
-    htimx_BLDC.Init.RepetitionCounter       = ADVANCED_TIM_REPETITIONCOUNTER;
-    HAL_TIM_PWM_Init(&htimx_BLDC);
+    /* 高级定时器PWM1配置 */
+    tim_bldc.Instance                     = TIM1;
+    tim_bldc.Init.Prescaler               = ADVANCED_TIM_PRESCALER;
+    tim_bldc.Init.CounterMode             = TIM_COUNTERMODE_UP;
+    tim_bldc.Init.Period                  = ADVANCED_TIM_PERIOD-1;
+    tim_bldc.Init.ClockDivision           = TIM_CLOCKDIVSION_DIV1;
+    tim_bldc.Init.RepetitionCounter       = ADVANCED_TIM_REPETITIONCOUNTER;
+    HAL_TIM_PWM_Init(&tim_bldc);
+    
     
     /* 高级定时时钟源选择 */
     sClockSourceConfig.ClockSource          = TIM_CLOCKSOURCE_INTERNAL;
-    HAL_TIM_ConfigClockSource(&htimx_BLDC, &sClockSourceConfig);
+    HAL_TIM_ConfigClockSource(&tim_bldc, &sClockSourceConfig);
+    
     
     /* 高级定时器刹车功能配置 */
     sBreakDeadTimeConfig.OffStateRunMode    = TIM_OSSR_ENABLE;
@@ -137,9 +136,10 @@ void ADVANCED_TIMx_Init(void)
     sBreakDeadTimeConfig.BreakState         = TIM_BREAK_ENABLE;
     sBreakDeadTimeConfig.BreakPolarity      = TIM_BREAKPOLARITY_HIGH;
     sBreakDeadTimeConfig.AutomaticOuput     = TIM_AUTOMATICOUTPUT_DISABLE;
-    HAL_TIMEx_ConfigBreakDeadTime(&htimx_BLDC, &sBreakDeadTimeConfig);
+    HAL_TIMEx_ConfigBreakDeadTime(&tim_bldc, &sBreakDeadTimeConfig);
 
-    /* 高级定时器3个通道配置 */    
+
+    /* 高级定时器通道1配置 */    
     sPWMConfig1.OCMode                      = TIM_OCMODE_PWM1;
     sPWMConfig1.Pulse                       = 0;
     sPWMConfig1.OCPolarity                  = TIM_OCPOLARITY_HIGH;
@@ -147,22 +147,22 @@ void ADVANCED_TIMx_Init(void)
     sPWMConfig1.OCFastMode                  = TIM_OCFAST_DISABLE;
     sPWMConfig1.OCIdleState                 = TIM_OCIDLESTATE_SET;
     sPWMConfig1.OCNIdleState                = TIM_OCNIDLESTATE_SET;
-    HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig1, TIM_CHANNEL_1);
-    
+    HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig1, TIM_CHANNEL_1);
+    /* 高级定时器通道2配置 */ 
     sPWMConfig2 = sPWMConfig1;
-    HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig2, TIM_CHANNEL_2);
-
+    HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig2, TIM_CHANNEL_2);
+    /* 高级定时器通道3配置 */ 
     sPWMConfig3 = sPWMConfig1;
-    HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig3, TIM_CHANNEL_3);   
+    HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig3, TIM_CHANNEL_3);   
     
     
     /* 初始化6路PWM为： 关闭状态 */
-    HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_1);
-    HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_2);
-    HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_3);
-    HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_3);      
+    HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_1);
+    HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_2);
+    HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_3);
+    HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_3);      
 }
 ############################################################
 ### main.c (上桥臂_PWM    下桥臂_ON) 
@@ -233,7 +233,7 @@ int main(void)
     /* 系统时钟配置 */
     SystemClock_Config();
     /* 高级定时器初始化并配置PWM输出功能 */
-    ADVANCED_TIMx_Init();
+    TIM1_Init();
     
     uwStep = 5;
     
@@ -251,16 +251,16 @@ void BLDC_PHASE_CHANGE(void)
     {
     case 4:                                                 /* B+ C- */
         /* 通道1关闭 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_1);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_1);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_1);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_1);
         /* 通道2配置 B+*/
         sPWMConfig2.Pulse   = ADVANCED_TIM_PERIOD*Speed_duty/100;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig2, TIM_CHANNEL_2);
-        HAL_TIM_PWM_Start(&htimx_BLDC, TIM_CHANNEL_2);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig2, TIM_CHANNEL_2);
+        HAL_TIM_PWM_Start(&tim_bldc, TIM_CHANNEL_2);
         /* 通道3(互补通道)配置 C-*/
         sPWMConfig3.Pulse   = ADVANCED_TIM_PERIOD;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig3, TIM_CHANNEL_3);
-        HAL_TIMEx_PWMN_Start(&htimx_BLDC, TIM_CHANNEL_3);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig3, TIM_CHANNEL_3);
+        HAL_TIMEx_PWMN_Start(&tim_bldc, TIM_CHANNEL_3);
         /* 执行下一步操作 */
         uwStep = 5;
         break;
@@ -268,16 +268,16 @@ void BLDC_PHASE_CHANGE(void)
         
     case 5:                                                 /* B+ A- */
         /* 通道3关闭 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_3);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_3);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_3);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_3);
         /* 通道1(互补通道)配置 A-*/
         sPWMConfig1.Pulse   = ADVANCED_TIM_PERIOD;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig1, TIM_CHANNEL_1);
-        HAL_TIMEx_PWMN_Start(&htimx_BLDC, TIM_CHANNEL_1);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig1, TIM_CHANNEL_1);
+        HAL_TIMEx_PWMN_Start(&tim_bldc, TIM_CHANNEL_1);
         /* 通道2配置 B+*/
         sPWMConfig2.Pulse   = ADVANCED_TIM_PERIOD*Speed_duty/100;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig2, TIM_CHANNEL_2);
-        HAL_TIM_PWM_Start(&htimx_BLDC, TIM_CHANNEL_2);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig2, TIM_CHANNEL_2);
+        HAL_TIM_PWM_Start(&tim_bldc, TIM_CHANNEL_2);
         /* 执行下一步操作 */
         uwStep = 1;
         break;
@@ -285,16 +285,16 @@ void BLDC_PHASE_CHANGE(void)
         
     case 1:                                                 /* C+ A- */
         /* 通道2关闭 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_2);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_2);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_2);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_2);
         /* 通道1(互补通道)配置 A-*/
         sPWMConfig1.Pulse   = ADVANCED_TIM_PERIOD;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig1, TIM_CHANNEL_1);
-        HAL_TIMEx_PWMN_Start(&htimx_BLDC, TIM_CHANNEL_1);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig1, TIM_CHANNEL_1);
+        HAL_TIMEx_PWMN_Start(&tim_bldc, TIM_CHANNEL_1);
         /* 通道3配置 C+*/
         sPWMConfig3.Pulse   = ADVANCED_TIM_PERIOD*Speed_duty/100;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig3, TIM_CHANNEL_3);
-        HAL_TIM_PWM_Start(&htimx_BLDC, TIM_CHANNEL_3);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig3, TIM_CHANNEL_3);
+        HAL_TIM_PWM_Start(&tim_bldc, TIM_CHANNEL_3);
         /* 执行下一步操作 */
         uwStep = 3;
         break;
@@ -302,16 +302,16 @@ void BLDC_PHASE_CHANGE(void)
         
     case 3:                                                 /* C+ B- */
         /* 通道1关闭 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_1);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_1);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_1);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_1);
         /* 通道2(互补通道)配置 B-*/
         sPWMConfig1.Pulse   = ADVANCED_TIM_PERIOD;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig2, TIM_CHANNEL_2);
-        HAL_TIMEx_PWMN_Start(&htimx_BLDC, TIM_CHANNEL_2);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig2, TIM_CHANNEL_2);
+        HAL_TIMEx_PWMN_Start(&tim_bldc, TIM_CHANNEL_2);
         /* 通道3配置 C+*/
         sPWMConfig3.Pulse   = ADVANCED_TIM_PERIOD*Speed_duty/100;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig3, TIM_CHANNEL_3);
-        HAL_TIM_PWM_Start(&htimx_BLDC, TIM_CHANNEL_3);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig3, TIM_CHANNEL_3);
+        HAL_TIM_PWM_Start(&tim_bldc, TIM_CHANNEL_3);
         /* 执行下一步操作 */
         uwStep = 2;
         break;
@@ -319,16 +319,16 @@ void BLDC_PHASE_CHANGE(void)
         
     case 2:                                                 /* A+ B- */
         /* 通道3关闭 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_3);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_3);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_3);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_3);
         /* 通道1配置 A+*/
         sPWMConfig1.Pulse   = ADVANCED_TIM_PERIOD*Speed_duty/100;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig1, TIM_CHANNEL_1);
-        HAL_TIM_PWM_Start(&htimx_BLDC, TIM_CHANNEL_1);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig1, TIM_CHANNEL_1);
+        HAL_TIM_PWM_Start(&tim_bldc, TIM_CHANNEL_1);
         /* 通道2(互补通道)配置 B-*/
         sPWMConfig2.Pulse   = ADVANCED_TIM_PERIOD;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig2, TIM_CHANNEL_2);
-        HAL_TIMEx_PWMN_Start(&htimx_BLDC, TIM_CHANNEL_2);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig2, TIM_CHANNEL_2);
+        HAL_TIMEx_PWMN_Start(&tim_bldc, TIM_CHANNEL_2);
         /* 执行下一步操作 */
         uwStep = 6;
         break;
@@ -336,16 +336,16 @@ void BLDC_PHASE_CHANGE(void)
         
     case 6:                                                 /* A+ C- */
         /* 通道2关闭 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_2);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_2);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_2);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_2);
         /* 通道1配置 A+*/
         sPWMConfig1.Pulse   = ADVANCED_TIM_PERIOD*Speed_duty/100;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig1, TIM_CHANNEL_1);
-        HAL_TIM_PWM_Start(&htimx_BLDC, TIM_CHANNEL_1);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig1, TIM_CHANNEL_1);
+        HAL_TIM_PWM_Start(&tim_bldc, TIM_CHANNEL_1);
         /* 通道2(互补通道)配置 C-*/
         sPWMConfig3.Pulse   = ADVANCED_TIM_PERIOD;
-        HAL_TIM_PWM_ConfigChannel(&htimx_BLDC, &sPWMConfig3, TIM_CHANNEL_3);
-        HAL_TIMEx_PWMN_Start(&htimx_BLDC, TIM_CHANNEL_3);
+        HAL_TIM_PWM_ConfigChannel(&tim_bldc, &sPWMConfig3, TIM_CHANNEL_3);
+        HAL_TIMEx_PWMN_Start(&tim_bldc, TIM_CHANNEL_3);
         /* 执行下一步操作 */
         uwStep = 4;
         break;
@@ -353,12 +353,12 @@ void BLDC_PHASE_CHANGE(void)
         
     default:
         /* 6个PWM波全部关断 */
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_1);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_1);
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_2);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_2);
-        HAL_TIM_PWM_Stop(&htimx_BLDC, TIM_CHANNEL_3);
-        HAL_TIMEx_PWMN_Stop(&htimx_BLDC, TIM_CHANNEL_3); 
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_1);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_1);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_2);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_2);
+        HAL_TIM_PWM_Stop(&tim_bldc, TIM_CHANNEL_3);
+        HAL_TIMEx_PWMN_Stop(&tim_bldc, TIM_CHANNEL_3); 
     }
 }
 
