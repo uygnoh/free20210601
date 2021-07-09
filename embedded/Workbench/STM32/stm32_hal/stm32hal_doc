@@ -1,182 +1,8 @@
-###########################################################
-### % hal_库编程思想
-###########################################################
-0 % STM32的外设寄存器组织形式：
-  % 基于(基地址 + 寄存器偏移)
-  
-  
-1 % GPIO寄存器表
-typedef struct {
-    GPIOx_MODER     (0x40000, 0000)      % gpio模式寄存器
-    GPIOx_OTYPER    (0x40000, 0004)      % gpio输出类型寄存器
-    GPIOx_OSPEEDR   (0x40000, 0008)      % gpio输出速度寄存器
-    GPIOx_PUPDR     (0x40000, 000C)      % gpio上拉/下拉寄存器
-    GPIOx_IDR       (0x40000, 0010)      % gpio输入数据寄存器
-    GPIOx_ODR       (0x40000, 0014)      % gpio输出数据寄存器
-    GPIOx_BSRRL     (0x40000, 0018)      % gpio置位/复位寄存器(低16位)
-    GPIOx_BSRRH     (0x40000, 001A)      % gpio置位/复位寄存器(高16位)
-    GPIOx_LCKR      (0x40000, 001C)      % gpio配置锁定寄存器
-    GPIOx_AFR[2]    (0x40000, 0020)      % gpio复用功能配置寄存器
-} GPIO_TypeDef;
-
-#define GPIOA_BASE  ((0x40000, 0000) + 0x0000U)
-#define GPIOA       ((GPIO_TypeDef *) GPIOA_BASE)
-
-typedef struct {
-    uint32_t Pin;       //指定在配置的GPIO引脚
-    uint32_t Mode;      //指定所选引脚的工作模式
-    uint32_t Pull;      //指定所选引脚上拉或下拉激活
-    uint32_t Speed;     //指定所选引脚的速度
-    uint32_t Alternate; //要连接到所选引脚的外设
-} GPIO_InitTyeDef;
-
-void HAL_GPIO_Init(GPIO_TypeDef* GPIOx, GPIO_InitTyeDef* GPIO_InitStruct);
-
-// % GPIO初始化例程
-int main(void)
-{
-    GPIO_InitTypeDef InitStruct;
-    
-    // 开启GPIOH时钟，使用外设时都要先开启它的时钟
-    RCC->AHB4ENR |= (1<<7);
-    
-    // 选择要控制的引脚
-    InitStruct.Pin = GPIO_PIN_10;
-    
-    // 设置引脚输出类型为推挽输出
-    InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    
-    // 设置引脚为上拉模式
-    InitStruct.Pull = GPIO_PULLUP;
-    
-    // 设置引脚速率为低速模式
-    InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    
-    // 调用库函数，使用上面配置的GPIO_InitStructctue初始化GPIO
-    HAL_GPIO_Init(GPIOH, &InitStruct);
-}
-
-
-
-
-###########################################################
-### % STM32F7_CMSIS
-###########################################################
-0 % 首先是cmsis开头的 
-(cmsis_armcc.h, cmsis_armclang.h, cmsis_compiler.h, cmsis_gcc.h)四个文件，
-这四个文件用于兼容不同的编译器，并为“core_cm7.h”文件提供一些编译符号和汇编级的内核接口。
-% 位置：STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Include\
-
-
-1 % 接下来是core_cm7.h文件，
-它对Cortex-M7的内核硬件进行了简单的封装，并向上级文件提供了一些简单的接口，
-位置：STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Include\
-
-
-2 % 在Cortex-M7内核之上的是STM32H7xx的设备硬件，对应于文件stm32h7xx.h，
-并在stm32h7xx.h中细分，STM32H743ZIT6对应于stm32h743xx.h。
-stm32h743xx.h的内容大致类似于标准外设库的stm32fxxx.h，是对STM32外设的定义。
-位置：STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Device\ST\STM32H7xx\Include
-
-
-3 % 与它处于同级的还有一个启动文件startup_stm32h743xx.s，
-这是一个汇编代码文件，为程序的直接入口，负责分配所有异常处理
-函数及中断服务函数的入口地址，也负责在复位及硬件就绪后调用main函数。
-位置:STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm
-
-
-4 % system_stm32h7xx.c/.h是一组介于底层硬件和上层HAL库之间的文件启动，
-其中源文件使用了一些由stm32h7xx.h与core_cm7.h提供的定义，如SCB，RCC。
-并提供了一个系统初始化函数SystemInit()，用于初始化硬件。这个函数在main()函数调用前
-由startup_stm32h7xx.s调用(在上图中，startup_stm32h7xx.s第243行导入，246、247行调用，
-之后的248、249行为main函数调用)
-位置：system_stm32h7xx.c:STM32Cube_FW_H7_V1.3.0\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates
-
-
-
-
 ############################################################
-### % HAL库的文件
-############################################################
-% HAL全称Hardware Abstract Layer，意为硬件抽象层
-HAL库的文件全部位于STM32Cube_FW_H7_V1.3.0\Drivers\STM32H7xx_HAL_Driver，
-除了HAL库文件以外，这个位置还有一个用户手册，这个手册是STM32H7全系列通用的。
-
-0 % 在HAL库中，由一些文件不属于STM32H7外设驱动部分，
-  他们是stm32h7xx_hal.c/.h、stm32h7xx_hal_cortex.c/.h
-  以及stm32_hal_legacy.h、stm32h7xx_hal_def.h。
-% stm32h7xx_hal.c/.h是HAL驱动文件，主要负责初始化HAL库的运行环境，向上层提供HAL管理的API。
-% stm32h7xx_hal_cortex.c/.h是Cortex内核的驱动文件，对Cortex-M7内核外设进行了封装，向上
-  层提供了MPU、NVIC、SysTick的管理API。
-% stm32_hal_legacy.h为提供给STM32CubeMX用于兼容老版本HAL库的文件，仅仅重新定义了一些宏和
-  常量，使HAL库便于维护。stm32h7xx_hal_def.h定义了一些HAL的宏、枚举和结构。
-
-
-1 % 另外，有一个文件比较特殊，stm32h7xx_hal_conf_template.h，
-  conf表示configuration，是一个配置文件，template表示这是一个模板。
-  在实际使用中，这个文件要被复制到用户文件夹，并重命名为stm32h7xx_hal_conf.h。
-  文件中定义了作为STM32H7外设编译开关的宏，时钟适应参数、系统参数、以太网参数等。
-  其中最关键的是HAL_PPP_MODULE_ENABLED的一系列宏。stm32h7xx_hal_conf.h将包
-  含在HAL库所有外设驱动文件中，用于选择是否编译对应的文件。
-以GPIO驱动文件为例，保持搜索_MODULE_ENABLED，可以看到stm32_hal_gpio.c中有
-两个结果，这两个结果匹配了一个#ifdef-#endif对，#ifdef-#endif对之间是全部的GPIO驱动程序。
-
-
-2 % stm32h7xx_hal_gpio.c中并未直接包含stm32h7xx_hal_conf.h，
-  但它包含了stm32h7xx_hal.h(上方第二张图124行处)，
-  而stm32h7xx_hal.h中又包含了stm32h7xx_hal_conf.h(下图46行处)
-
-
-3 % 顺带一提，在STM32H7的HAL库中，某一外设的驱动文件stm32h7xx_hal_ppp.c/.h
-  并不是由源文件直接包含头文件，而是以stm32h7xx_hal_ppp.c->stm32h7xx.h->
-  stm32h7xx_hal_conf.h->stm32h7xx_hal_ppp.h的方式间接包含(其中->表示前者包含后者)
-
-
-
-4 % 在STM32H7外设驱动文件中，有4组文件不属于HAL(硬件抽象层)，
-即stm32h7xx_ll_delayblock.c/.h、stm32h7xx_ll_sdmmc.c/.h、
-stm32h7xx_ll_fmc.c/.h、stm32h7xx_ll_usb.c/.h，
-它们属于Lower Layer(底层)，这与HAL的思想有关，这四种硬件在STM32H7
-上全部位于底层工作，本身不适合直接抽象，或者其具有的功能不适合直接抽象。
-DelayBlock在QSPI或者SDMMC的SD功能启用的前提下才能启用；SDMMC外设
-可控制SD卡和MMC两种差别较大的硬件；FMC可以控制NOR-Flash/PSRAM、
-NAND_Flash、SDRAM这几类差别较大的硬件；USB复杂且需要中间件，
-于是就先进行底层封装，再进行抽象。其他外设的功能较单一或者不同
-功能较为类似，所以不需要底层封装可以直接进行抽象。
-
-
-5 % 除上述的三类文件之外，其余文件均为对应外设的功能级驱动文件。
-一个外设的驱动文件一定包含stm32h7xx_hal_ppp.c/.h，
-同时可能会包含stm32h7xx_hal_ppp_ex.c/.h，后者是前者的拓展。
-通常情况下，凡是要使用某一外设的驱动文件，直接包含所有头文件，
-并将所有源文件添加至工程中即可。
-
-
-6 % 至于用户文件，以Nucleo开发板的工程模板为例，
-位置：STM32Cube_FW_H7_V1.3.0\Projects\STM32H743ZI-Nucleo\Templates，
-不过仅仅关注其中的src、inc两个文件夹。
-文件夹中共7个文件：main.c/.h、stm32h7xx_it.c/.h、
-stm32h7xx_hal_msp.c、system_stm32h7xx.c、stm32h7xx_hal_conf.h。
-
-
-
-7 % stm32h7xx_hal_msp.c是MCU Sopport Package(MCU支持包)的源文件，
-  用户需要在其中重写某些外设的MSP程序，主要内容和原理暂不说明。
-
-
-
-
-
-
-############################################################
-### % 句柄（handle）
+### % stm32 hal
 ############################################################
 % STM32的标准库中，句柄是一种特殊的指针，通常指向结构体！
-
-
-0 % 在STM32的标准库中，假设我们要初始化一个外设（这里以USART为例），
-  我们首先要初始化他们的各个寄存器。在标准库中，这些操作都是利用固件库
-  结构体变量+固件库Init函数实现的：
+0 % 在STM32的标准库中，假设我们要初始化一个外设（这里以USART为例）
 USART_InitTypeDef USART_InitStructure;
 USART_InitStructure.USART_BaudRate = bound;//串口波特率
 USART_InitStructure.USART_WordLength = USART_WordLength_8b;//字长为8位数据格式
@@ -188,12 +14,14 @@ USART_Init(USART3, &USART_InitStructure); //初始化串口1
 % 可以看到，要初始化一个串口，需要：
     1、对六个位置进行赋值，
     2、然后引用Init函数，
-USART_InitStructure并不是一个全局结构体变量，而是只在函数内部的局部变量，
-初始化完成之后，USART_InitStructure就失去了作用。
+USART_InitStructure并不是一个全局结构体变量，
+而是只在函数内部的局部变量，初始化完成之后，USART_InitStructure就失去了作用。
+
 
 
 1 % 而在HAL库中，同样是USART初始化结构体变量，我们要定义为全局变量。
 UART_HandleTypeDef UART1_Handler;
+
 % 右键查看结构体成员
 typedef struct
 {
@@ -303,11 +131,6 @@ u8 aRxBuffer[RXBUFFERSIZE];
 
 
 
-
-
-############################################################
-### % hal回调函数
-############################################################
 
 
 
