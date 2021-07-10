@@ -1,7 +1,8 @@
 #include <stdio.h>
 void test1(void);
 void test2(void);
-int main(void)
+
+int main(int argc, const char *argv[])
 {
 	test2();
 	test1();
