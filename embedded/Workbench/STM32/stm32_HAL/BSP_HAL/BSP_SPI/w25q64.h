@@ -46,7 +46,6 @@
 #define SPIX_FORCE_RESET()		__HAL_RCC_SPI1_FORCE_RESET()
 #define SPIX_RELEASE_RESET()		__HAL_RCC_SPI1_RELEASE_RESET()
 
-
 /* Definition for SPIX Pins */
 #define FLASH_CS_PIN		GPIO_PIN_4               
 #define FLASH_CS_GPIO_PORT	GPIOA   
@@ -57,10 +56,10 @@
 #define SPIX_MOSI_PIN		GPIO_PIN_7
 #define SPIX_MOSI_GPIO_PORT	GPIOA
 
-#define	HIGH_LEVEL(p,i)		{p->BSRR=i;} //设置为高电平		
-#define LOW_LEVEL(p,i)		{p->BSRR=(uint32_t)i << 16;}//输出低电平
-#define SPI_FLASH_CS_LOW()	digitalLo(FLASH_CS_GPIO_PORT,FLASH_CS_PIN )
-#define SPI_FLASH_CS_HIGH()	digitalHi(FLASH_CS_GPIO_PORT,FLASH_CS_PIN )
+#define	HIGH_LEVEL(p,i)		{p->BSRR = i;} //设置为高电平		
+#define LOW_LEVEL(p,i)		{p->BSRR = (uint32_t)i << 16;}//输出低电平
+#define SPI_FLASH_CS_LOW()	digitalLo(FLASH_CS_GPIO_PORT,FLASH_CS_PIN)
+#define SPI_FLASH_CS_HIGH()	digitalHi(FLASH_CS_GPIO_PORT,FLASH_CS_PIN)
 /*SPI接口定义-结尾****************************/
 
 
@@ -70,7 +69,7 @@
 
 
 /*信息输出*/
-#define FLASH_DEBUG_ON         1
+#define FLASH_DEBUG_ON		1
 #define FLASH_INFO(fmt,arg...)	printf("<<-FLASH-INFO->> "fmt"\n",##arg)
 #define FLASH_ERROR(fmt,arg...)	printf("<<-FLASH-ERROR->> "fmt"\n",##arg)
 #define FLASH_DEBUG(fmt,arg...)	do {			\
