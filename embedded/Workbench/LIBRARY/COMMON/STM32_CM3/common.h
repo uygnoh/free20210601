@@ -19,7 +19,7 @@
 #define  GPIOG_ODR_G  (GPIOG_BASE + 0x0C)
 #define  GPIOG_IDR_G  (GPIOG_BASE + 0x08)
 #define BitBand(Addr,BitNum)  *((volatile unsigned long *)\
-    ((Addr&0xF0000000)+0x2000000+((Addr&0xFFFFF)<<5)+(BitNum<<2)))
+	((Addr&0xF0000000)+0x2000000+((Addr&0xFFFFF)<<5)+(BitNum<<2)))
 #define PA_OUT(n)     BitBand(GPIOA_ODR_A,n)
 #define PA_IN(n)      BitBand(GPIOA_IDR_A,n)
 #define PB_OUT(n)     BitBand(GPIOB_ODR_B,n)
