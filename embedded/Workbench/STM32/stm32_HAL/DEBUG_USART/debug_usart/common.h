@@ -3,7 +3,8 @@
 
 #include "stm32f4xx.h"
 
-
+int user_main(void);
+int user_main_it(void);
 
 /************************* Polling mode IO operation *************************/
 /*
@@ -24,8 +25,8 @@ HAL_StatusTypeDef HAL_UART_Receive(
 #define TX_TIMEOUT		1000			/* 发送超时 */
 #define RX_TIMEOUT		1000			/* 接收超时 */
 
-extern uint8_t tx_buf[TX_BUF_SIZE];	/* 发送数据缓冲区 */
-extern uint8_t rx_buf[RX_BUF_SIZE];	/* 接收数据缓冲区 */
+extern uint8_t tx_buf[] = ;	/* 发送数据缓冲区 */
+extern uint8_t rx_buf[];	/* 接收数据缓冲区 */
 //extern uint8_t tx_flag;/* 标志位置“1” */
 extern uint8_t rx_flag;			/* 串口接收到数据， 标志位置“1” */
 #endif

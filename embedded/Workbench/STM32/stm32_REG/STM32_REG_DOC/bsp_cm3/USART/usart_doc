@@ -35,7 +35,7 @@ USART1->BRR = BRR;                              /* 将整合后的数值放入BR
 /* 发送一个字符 'A' 到 USART的DR寄存器 */
 	int i, data,;
 	data = 'A';
-	USART->DR = data;
+	USART1->DR = data;
 	for (i = 0; i < 30; i++) 
 	{
 		data++;
