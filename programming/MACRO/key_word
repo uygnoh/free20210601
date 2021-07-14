@@ -157,15 +157,3 @@ u8 FileAddr[100] __attribute__ ((section ("FILE_RAM"), zero_init,aligned(4)));
 % volatile 关键字（易失的，可变的）, 此关键字主要用于处理器的寄存器编程！
 *((uint_32 volatile *)(0x40032810))
 
-
-
-
-
-
-
-
- 
-
-
-
-
