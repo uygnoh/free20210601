@@ -1,0 +1,12 @@
+############################################################
+### % STM32F10x
+############################################################
+% 复用重映射和调试I/O配置寄存器(AFIO_MAPR)
+AF remap and debug I/O configuration register (AFIO_MAPR)
+_________________________________________________________
+Bits 26:24 {SWJ_CFG[2:0]: Serial wire JTAG configuration}
+000: Full SWJ (JTAG-DP + SW-DP): Reset State
+001: Full SWJ (JTAG-DP + SW-DP) but without NJTRST
+010: JTAG-DP Disabled and SW-DP Enabled
+100: JTAG-DP Disabled and SW-DP Disabled
+% Other combinations: no effect
