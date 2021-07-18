@@ -4,141 +4,113 @@
 
 /******************************************************************************/
 /*                                                                            */
-/*                     STM32F10X___位绑定                                      */
+/*                                M16 | M32                                   */
 /*                                                                            */
 /******************************************************************************/
-#define  GPIOA_ODR_A  (GPIOA_BASE + 0x0C)
-#define  GPIOA_IDR_A  (GPIOA_BASE + 0x08)
-#define  GPIOB_ODR_B  (GPIOB_BASE + 0x0C)
-#define  GPIOB_IDR_B  (GPIOB_BASE + 0x08)
-#define  GPIOC_ODR_C  (GPIOC_BASE + 0x0C)
-#define  GPIOC_IDR_C  (GPIOC_BASE + 0x08)
-#define  GPIOD_ODR_D  (GPIOD_BASE + 0x0C)
-#define  GPIOD_IDR_D  (GPIOD_BASE + 0x08)
-#define  GPIOE_ODR_E  (GPIOE_BASE + 0x0C)
-#define  GPIOE_IDR_E  (GPIOE_BASE + 0x08)
-#define  GPIOF_ODR_F  (GPIOF_BASE + 0x0C)
-#define  GPIOF_IDR_F  (GPIOF_BASE + 0x08)
-#define  GPIOG_ODR_G  (GPIOG_BASE + 0x0C)
-#define  GPIOG_IDR_G  (GPIOG_BASE + 0x08)
-#define BitBand(Addr, BitNum)  *((volatile unsigned long *)\
-((Addr & 0xF0000000) + 0x2000000 + ((Addr & 0xFFFFF) << 5) + (BitNum << 2)))
-#define PA_IN(n) 	BitBand(GPIOA_IDR_A, n)
-#define PA_OUT(n) 	BitBand(GPIOA_ODR_A, n)
-#define PB_IN(n) 	BitBand(GPIOB_IDR_B, n)
-#define PB_OUT(n) 	BitBand(GPIOB_ODR_B, n)
-#define PC_IN(n) 	BitBand(GPIOC_IDR_C, n)
-#define PC_OUT(n) 	BitBand(GPIOC_ODR_C, n)
-#define PD_IN(n) 	BitBand(GPIOD_IDR_D, n)
-#define PD_OUT(n) 	BitBand(GPIOD_ODR_D, n)
-#define PE_IN(n) 	BitBand(GPIOE_IDR_E, n)
-#define PE_OUT(n) 	BitBand(GPIOE_ODR_E, n)
-#define PF_IN(n) 	BitBand(GPIOF_IDR_F, n)
-#define PF_OUT(n) 	BitBand(GPIOF_ODR_F, n)
-#define PG_IN(n) 	BitBand(GPIOG_IDR_G, n)
-#define PG_OUT(n) 	BitBand(GPIOG_ODR_G, n)
+#define m16_set_bit_00              ((uint16_t)0x0001)
+#define m16_set_bit_01              ((uint16_t)0x0002)
+#define m16_set_bit_02              ((uint16_t)0x0004)
+#define m16_set_bit_03              ((uint16_t)0x0008)
+#define m16_set_bit_04              ((uint16_t)0x0010)
+#define m16_set_bit_05              ((uint16_t)0x0020)
+#define m16_set_bit_06              ((uint16_t)0x0040)
+#define m16_set_bit_07              ((uint16_t)0x0080)
+#define m16_set_bit_08              ((uint16_t)0x0100)
+#define m16_set_bit_09              ((uint16_t)0x0200)
+#define m16_set_bit_10              ((uint16_t)0x0400)
+#define m16_set_bit_11              ((uint16_t)0x0800)
+#define m16_set_bit_12              ((uint16_t)0x1000)
+#define m16_set_bit_13              ((uint16_t)0x2000)
+#define m16_set_bit_14              ((uint16_t)0x4000)
+#define m16_set_bit_15              ((uint16_t)0x8000)
+#define m32_set_bit_00              ((uint32_t)0x00000001)
+#define m32_set_bit_01              ((uint32_t)0x00000002)
+#define m32_set_bit_02              ((uint32_t)0x00000004)
+#define m32_set_bit_03              ((uint32_t)0x00000008)
+#define m32_set_bit_04              ((uint32_t)0x00000010)
+#define m32_set_bit_05              ((uint32_t)0x00000020)
+#define m32_set_bit_06              ((uint32_t)0x00000040)
+#define m32_set_bit_07              ((uint32_t)0x00000080)
+#define m32_set_bit_08              ((uint32_t)0x00000100)
+#define m32_set_bit_09              ((uint32_t)0x00000200)
+#define m32_set_bit_10              ((uint32_t)0x00000400)
+#define m32_set_bit_11              ((uint32_t)0x00000800)
+#define m32_set_bit_12              ((uint32_t)0x00001000)
+#define m32_set_bit_13              ((uint32_t)0x00002000)
+#define m32_set_bit_14              ((uint32_t)0x00004000)
+#define m32_set_bit_15              ((uint32_t)0x00008000)
+#define m32_set_bit_16              ((uint32_t)0x00010000)
+#define m32_set_bit_17              ((uint32_t)0x00020000)
+#define m32_set_bit_18              ((uint32_t)0x00040000)
+#define m32_set_bit_19              ((uint32_t)0x00080000)
+#define m32_set_bit_20              ((uint32_t)0x00100000)
+#define m32_set_bit_21              ((uint32_t)0x00200000)
+#define m32_set_bit_22              ((uint32_t)0x00400000)
+#define m32_set_bit_23              ((uint32_t)0x00800000)
+#define m32_set_bit_24              ((uint32_t)0x01000000)
+#define m32_set_bit_25              ((uint32_t)0x02000000)
+#define m32_set_bit_26              ((uint32_t)0x04000000)
+#define m32_set_bit_27              ((uint32_t)0x08000000)
+#define m32_set_bit_28              ((uint32_t)0x10000000)
+#define m32_set_bit_29              ((uint32_t)0x20000000)
+#define m32_set_bit_30              ((uint32_t)0x40000000)
+#define m32_set_bit_31              ((uint32_t)0x80000000)
 
 /******************************************************************************/
 /*                                                                            */
 /*                     AHB外设时钟使能寄存器___RCC_AHBENR                        */
 /*                                                                            */
 /******************************************************************************/
-#define DM1_CLOCK_ENABLE()      do {    \
-                RCC->AHBENR  |= ((uint32_t)0x00000001); } while (0)     /*0*/
-#define DM2_CLOCK_ENABLE()      do {    \
-                RCC->AHBENR  |= ((uint32_t)0x00000002); } while (0)     /*2*/
+#define dma1_clock_enable()     do {RCC->AHBENR |= m32_set_bit_00;} while (0)
+#define dma2_clock_enable()     do {RCC->AHBENR |= m32_set_bit_01;} while (0)
 
 /******************************************************************************/
 /*                                                                            */
 /*                     APB2外设时钟使能寄存器___RCC_APB2ENR                      */
 /*                                                                            */
 /******************************************************************************/
-#define AFIO_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000001); } while (0)     /*0*/
-#define GPIOA_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000004); } while (0)     /*2*/
-#define GPIOB_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000008); } while (0)     /*3*/
-
-#define GPIOC_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000010); } while (0)     /*4*/
-#define GPIOD_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000020); } while (0)     /*5*/
-#define GPIOE_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000040); } while (0)     /*6*/
-#define GPIOF_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000080); } while (0)     /*7*/
-
-#define GPIOG_CLOCK_ENABLE()    do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000100); } while (0)     /*8*/
-#define ADC1_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000200); } while (0)     /*9*/
-#define ADC2_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000400); } while (0)     /*10*/
-#define TIM1_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00000800); } while (0)     /*11*/
-
-#define SPI1_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00001000); } while (0)     /*12*/
-#define TIM8_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00002000); } while (0)     /*13*/
-#define USART1_CLOCK_ENABLE()   do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00004000); } while (0)     /*14*/
-#define ADC3_CLOCK_ENABLE()     do {    \
-                RCC->APB2ENR |= ((uint32_t)0x00008000); } while (0)     /*15*/
+#define afio_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_00;} while (0)
+#define gpioa_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_02;} while (0)
+#define gpiob_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_03;} while (0)
+#define gpioc_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_04;} while (0)
+#define gpiod_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_05;} while (0)
+#define gpioe_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_06;} while (0)
+#define gpiof_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_07;} while (0)
+#define gpiog_clock_enable()    do {RCC->APB2ENR |= m32_set_bit_08;} while (0)
+#define adc1_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_09;} while (0)
+#define adc2_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_10;} while (0)
+#define tim1_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_11;} while (0)
+#define spi1_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_12;} while (0)
+#define tim8_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_13;} while (0)
+#define usart1_clock_enable()   do {RCC->APB2ENR |= m32_set_bit_14;} while (0)
+#define adc3_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_15;} while (0)
 
 /******************************************************************************/
 /*                                                                            */
 /*                     APB1外设时钟使能寄存器___RCC_APB1ENR                      */
 /*                                                                            */
 /******************************************************************************/
-#define TIM2_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000001); } while (0)     /*0*/
-#define TIM3_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000002); } while (0)     /*1*/
-#define TIM4_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000004); } while (0)     /*2*/
-#define TIM5_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000008); } while (0)     /*3*/
+#define tim2_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_00;} while (0)
+#define tim3_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_01;} while (0)
+#define tim4_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_02;} while (0)
+#define tim5_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_03;} while (0)
+#define tim6_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_04;} while (0)
+#define tim7_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_05;} while (0)
+#define wwdg_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_11;} while (0)
+#define spi2_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_14;} while (0)
+#define spi3_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_15;} while (0)
+#define usart2_clock_enable()   do {RCC->APB2ENR |= m32_set_bit_17;} while (0)
+#define usart3_clock_enable()   do {RCC->APB2ENR |= m32_set_bit_18;} while (0)
+#define usart4_clock_enable()   do {RCC->APB2ENR |= m32_set_bit_19;} while (0)
+#define usart5_clock_enable()   do {RCC->APB2ENR |= m32_set_bit_20;} while (0)
+#define i2c1_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_21;} while (0)
+#define i2c2_clock_enable()     do {RCC->APB2ENR |= m32_set_bit_22;} while (0)
+#define usb_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_23;} while (0)
+#define can_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_25;} while (0)
+#define bkp_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_27;} while (0)
+#define pwr_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_28;} while (0)
+#define dac_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_29;} while (0)
 
-#define TIM6_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000010); } while (0)     /*4*/
-#define TIM7_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000020); } while (0)     /*5*/
-
-#define WWDG_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00000800); } while (0)     /*11*/
-
-#define SPI2_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00004000); } while (0)     /*14*/
-#define SPI3_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00008000); } while (0)     /*15*/
-                
-#define USART2_CLOCK_ENABLE()   do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00020000); } while (0)     /*17*/
-#define USART3_CLOCK_ENABLE()   do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00040000); } while (0)     /*18*/
-#define USART4_CLOCK_ENABLE()   do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00080000); } while (0)     /*19*/
-
-#define USART5_CLOCK_ENABLE()   do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00100000); } while (0)     /*20*/
-#define I2C1_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00200000); } while (0)     /*21*/
-#define I2C2_CLOCK_ENABLE()     do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00400000); } while (0)     /*22*/
-#define USB_CLOCK_ENABLE()      do {    \
-                RCC->APB1ENR |= ((uint32_t)0x00800000); } while (0)     /*23*/
-
-#define CAN_CLOCK_ENABLE()      do {    \
-                RCC->APB1ENR |= ((uint32_t)0x02000000); } while (0)     /*25*/
-#define BKP_CLOCK_ENABLE()      do {    \
-                RCC->APB1ENR |= ((uint32_t)0x08000000); } while (0)     /*27*/
-
-#define PWR_CLOCK_ENABLE()      do {    \
-                RCC->APB1ENR |= ((uint32_t)0x10000000); } while (0)     /*28*/
-#define DAC_CLOCK_ENABLE()      do {    \
-                RCC->APB1ENR |= ((uint32_t)0x20000000); } while (0)     /*29*/
 
 void delay_us(uint16_t t);
 void delay_ms(uint16_t t);

@@ -129,5 +129,3 @@ CFLAGSlib       +=$(COMMONFLAGSlib) -Wall -Werror $(INCLUDE)
 CFLAGSlib       +=-D $(TypeOfMCU)
 CFLAGSlib       +=-D VECT_TAB_FLASH
 CFLAGSlib       +=-D USE_STDPERIPH_DRIVER
-
-

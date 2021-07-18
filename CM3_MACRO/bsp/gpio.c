@@ -66,7 +66,7 @@ void gpio_bit_setup(void)
 **************************************************************/
 void gpio_swd_setup(void)
 {
-	/* 禁用JTAG, 开启SWD */
+	/* 使能AFIO时钟， 禁用JTAG, 开启SWD */
 	RCC->APB2ENR |= (uint32_t)(0x00000001);
 	AFIO->MAPR   &= (uint32_t)(0x00FFFFFF);
 	AFIO->MAPR   |= (uint32_t)(0x02000000);
