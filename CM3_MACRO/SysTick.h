@@ -13,9 +13,9 @@
  * SysTick->CALIB   校准数值寄存器
  */
 // 1微秒延时 SysTick = @系统时钟为72MHz / 8
-void delay_us(uint32_t time)
+void delay_us(uint16_t time)
 {
-	uint32_t tmp;
+	uint16_t tmp;
 
 	SysTick->LOAD = 9 * time;
 	SysTick->VAL  = 0x00;
@@ -29,3 +29,4 @@ void delay_us(uint32_t time)
 	SysTick->CTRL = 0x00; 
 	SysTick->VAL  = 0x00; 
 }
+

@@ -133,9 +133,14 @@ void gpio_bit_setup(void)
         ！这些位只可由软件写(读这些位，将返回未定义的数据值)
 000     完全SWJ(JTAG-DP + SW-DP)：复位状态； 
 001     完全SWJ(JTAG-DP + SW-DP)但没有NJTRST；
-010     关闭JTAG-DP，启用SW-DP； 
+010     关闭JTAG-DP，启用SW-DP；
 100     关闭JTAG-DP，关闭SW-DP；
 **************************************************************/
+/* 禁用JTAG, 开启SWD */
+RCC->APB2ENR |= (uint32_t)(0x00000001);
+AFIO->MAPR   &= (uint32_t)(0x00FFFFFF);
+AFIO->MAPR   |= (uint32_t)(0x02000000);
+
 
 
 /**************************************************************
