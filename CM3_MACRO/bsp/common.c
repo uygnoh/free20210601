@@ -15,34 +15,34 @@
  * SysTick->CALIB   校准数值寄存器
  */
 // 1微秒延时 SysTick = @系统时钟为72MHz / 8
-void delay_us(uint16_t time)
+void delay_us(uint16_t t)
 {
 	uint16_t tmp;
 
-	SysTick->LOAD = 9 * time;
+	SysTick->LOAD = 9 * t;
 	SysTick->VAL  = 0x00;
 	/* 启动SysTick计数器 */
 	SysTick->CTRL = 0x01;
 	/* 判断(COUNTFLAG)这个标志位的值 */
 	do {
-		temp = SysTick->CTRL;
+		tmp = SysTick->CTRL;
 	} while ((tmp & 0x01) && (!(tmp & (1 << 16))));
 
 	SysTick->CTRL = 0x00; 
 	SysTick->VAL  = 0x00; 
 }
 
-void delay_ms(uint16_t time)
+void delay_ms(uint16_t t)
 {
 	uint16_t tmp;
 
-	SysTick->LOAD = 9000 * time;
+	SysTick->LOAD = 9000 * t;
 	SysTick->VAL  = 0x00;
 	/* 启动SysTick计数器 */
 	SysTick->CTRL = 0x01;
 	/* 判断(COUNTFLAG)这个标志位的值 */
 	do {
-		temp = SysTick->CTRL;
+		tmp = SysTick->CTRL;
 	} while ((tmp & 0x01) && (!(tmp & (1 << 16))));
 
 	SysTick->CTRL = 0x00; 

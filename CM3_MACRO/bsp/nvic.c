@@ -1,26 +1,27 @@
-#ifndef __INTERRUPT_H__
-#ifndef __INTERRUPT_H__
-#include "stm32f10x.h"
+#include "nvic.h"
 
 /*---------------------------------------------------------------------------*/
 /** @brief 设置中断优先级组
  * 31:16 (访问钥匙密)任何对该寄存器的写操作,都必须同时写入“0x05FA”
  * 10:8  (优先级分组)指定先占优先级和从优先级位数
- * 111   (0位抢占优先级, 4位响应优先级)
- * 110   (1位抢占优先级, 3位响应优先级)
- * 101   (2位抢占优先级, 2位响应优先级)
- * 100   (3位抢占优先级, 1位响应优先级)
- * 011   (4位抢占优先级, 0位响应优先级)
+Cortex-M3共有8位可配置的优先级，但STM32F10x只用到“高”4位
+ * 111   (0位抢占优先级, 4位响应优先级)	7
+ * 110   (1位抢占优先级, 3位响应优先级)	6
+ * 101   (2位抢占优先级, 2位响应优先级)	5
+ * 100   (3位抢占优先级, 1位响应优先级)	4
+ * 011   (4位抢占优先级, 0位响应优先级)	3
  */
-void nvic_set_priority_group()
+void nvic_set_priority_group(void)
 {
 	/* 清除高16位和低(10,9,8)位 */ 
-	SCB->AIRCR &= uint32_t(0x0000F8FF);
+	SCB->AIRCR &= (uint32_t)(0x0000F8FF);
 	/* 2位抢占优先级, 2位响应优先级 */
-	SCB->AIRCR |= uint32_t(0x05FA0000 | 0x00000500);
+	SCB->AIRCR |= (uint32_t)(0x05FA0000 | 0x00000500);
 }
 
 /** @brief 设置外部中断的先占优先级和从优先级
+ * @param[in] uint8_t irq, 选择外部中断编号
+ * @param[in] uint8_t priority, 设置它对应的先占优先级和从优先级
  */
 void nvic_set_irq_priority(uint8_t irq, uint8_t priority)
 {
@@ -130,4 +131,4 @@ void nvic_generate_software_interrupt(uint16_t irqn)
 	if (irqn <= 239) {
 		NVIC->STIR |= irqn;
 	}
-#endif
+}

@@ -21,7 +21,7 @@
 #define M32_SET_BIT_15              ((uint32_t)0x00008000)
 #define M32_SET_BIT_16              ((uint32_t)0x00010000)
 #define M32_SET_BIT_17              ((uint32_t)0x00020000)
-#define M32_SET_BIT_19              ((uint32_t)0x00040000)
+#define M32_SET_BIT_18              ((uint32_t)0x00040000)
 #define M32_SET_BIT_19              ((uint32_t)0x00080000)
 #define M32_SET_BIT_20              ((uint32_t)0x00100000)
 #define M32_SET_BIT_21              ((uint32_t)0x00200000)
@@ -165,4 +165,8 @@ EXTI_PR_挂起寄存器
 也可以通过改变边沿检测的极性清除。
 注:位19只适用于互联型产品,对于其它产品为保留位
 **************************************************************/
+
+void gpio_mode_setup(void);
+void gpio_bit_setup(void);
+void gpio_swd_setup(void);
 #endif

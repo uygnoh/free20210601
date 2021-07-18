@@ -46,12 +46,12 @@ void gpio_mode_setup(void)
 void gpio_bit_setup(void)
 {
 	/* 清除GPIOA_ODR第“0”位 */
-	GPIOA->BRR = CLEAR_BIT_0;
+	GPIOA->BRR = M16_SET_BIT_00;
 	
 	/* 清除GPIOA_ODR第“0”位(高16位清除) */
-	GPIOA->BSRR = MACRO_BIT_16;
+	GPIOA->BSRR = M32_SET_BIT_16;
 	/* 设置GPIOA_ODR第“0”位(低16位设置) */
-	GPIOA->BSRR = MACRO_BIT_0;
+	GPIOA->BSRR = M32_SET_BIT_00;
 }
 
 
