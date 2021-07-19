@@ -1,15 +1,18 @@
 #include "stm32f10x.h"
-
+void led_test(void)
+{
+	m_gpioc_clock_enable();
+	/* gpioc_13@50MHz_push-pull */
+	GPIOC->CRH &= ((uint32_t)0xFF0FFFFF);
+	GPIOC->CRH |= ((uint32_t)0x00300000);
+	while (1) {
+		m32_pc_out(13) = 0;
+		delay_ms(100);
+		m32_pc_out(13) = 1;
+		delay_ms(100);
+	}
+}
 int main(void)
 {
-	/* 发送30个字符 'A' 到 USART的DR寄存器 */
-	int i, data;
-	data = 'A';
-
-	for (i = 0; i < 30; i++) {
-		USART1->DR = data;
-		data++;
-		//等待数据发送完成
-		while ((USART1->SR & M16_SET_BIT_06) == 0);
-	}
+	led_test();
 }

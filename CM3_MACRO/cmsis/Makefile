@@ -11,7 +11,7 @@ cmsis: $(CMSIS_LIBS)
 libcmsis.a:
 	@echo -n "Building $@ ..."
 	
-	@cd $(CMSISLIB)/clock_init && \
+	@cd $(CMSISLIB)/clock_setup && \
 		$(CC) $(CFLAGSlib) \
 			*.c
 	@cd $(CMSISLIB) && \
@@ -19,7 +19,7 @@ libcmsis.a:
 			*.c
 			
 	@$(AR) cr $(CMSISDIR)/$@ \
-		$(CMSISLIB)/clock_init/*.o \
+		$(CMSISLIB)/clock_setup/*.o \
 		$(CMSISLIB)/*.o
 		
 	@echo "done."
@@ -29,7 +29,7 @@ libcmsis.a:
 .PHONY: cmsis clean tshow
 
 clean:
-	rm -f $(CMSISLIB)/clock_init/*.o
+	rm -f $(CMSISLIB)/clock_setup/*.o
 	rm -f $(CMSISLIB)/*.o
 	rm -f $(CMSIS_LIBS)
 
@@ -37,6 +37,3 @@ tshow:
 	@echo "######################################################################################################"
 	@echo "######## optimize settings: $(InfoTextLib), $(InfoTextSrc)"
 	@echo "######################################################################################################"
-
-
-

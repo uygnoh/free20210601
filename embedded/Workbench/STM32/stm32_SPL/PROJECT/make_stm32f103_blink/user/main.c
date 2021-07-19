@@ -23,7 +23,7 @@ void test(void)
         pcout(13) = 0;
         delay_ms(1000);
         pcout(13) = 1;
-		delay_ms(1000);
+	delay_ms(1000);
     }
     
 }

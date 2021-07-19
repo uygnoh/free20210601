@@ -57,12 +57,8 @@ INCLUDE	        =-I$(TOP)/user
 ### cmsis目录下的头文件包括
 CMSISDIR        =$(TOP)/cmsis
 CMSISLIB        =$(CMSISDIR)
-INCLUDE	        +=-I$(CMSISLIB)/clock_init
+INCLUDE	        +=-I$(CMSISLIB)/clock_setup
 INCLUDE	        +=-I$(CMSISLIB)
-### interrupt目录下的头文件包括
-INTERRUPTDIR    =$(TOP)/interrupt
-INTERRUPTLIB    =$(INTERRUPTDIR)
-INCLUDE         +=-I$(INTERRUPTLIB)
 ### stm32目录下的头文件包括
 STM32DIR        =$(TOP)/stm32
 STM32LIB        =$(STM32DIR)

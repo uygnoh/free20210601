@@ -4,11 +4,10 @@
 include common.mk
 
 LDFLAGS=$(COMMONFLAGS) -fno-exceptions -ffunction-sections \
-			-fdata-sections -L$(STM32DIR) -L$(BSPDIR) -L$(CMSISDIR) -L$(INTERRUPTDIR) \
+			-fdata-sections -L$(STM32DIR) -L$(BSPDIR) -L$(CMSISDIR) \
 			-Wl,--gc-sections,-Tldscripts/linker.ld
 
 LDLIBS+=-lcmsis
-LDLIBS+=-linterrupt
 LDLIBS+=-lstm32
 LDLIBS+=-lbsp
 
@@ -45,16 +44,12 @@ stm32:
 	
 bsp:
 	$(MAKE) -C bsp $@
-	
-interrupt:
-	$(MAKE) -C interrupt $@
 
 clean:
 	$(MAKE) -C user $@
 	$(MAKE) -C cmsis $@
 	$(MAKE) -C stm32 $@
 	$(MAKE) -C bsp $@
-	$(MAKE) -C interrupt $@
 	rm -f output/$(PROGRAM).elf output/$(PROGRAM).hex \
 		output/$(PROGRAM).bin output/$(PROGRAM).info_elf \
 			output/$(PROGRAM).info_size output/$(PROGRAM).info_code \
@@ -64,6 +59,3 @@ tshow:
 	@echo "######################################################################################################"
 	@echo "######## optimize settings: $(InfoTextLib), $(InfoTextSrc)"
 	@echo "######################################################################################################"
-
-
-
