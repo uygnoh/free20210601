@@ -6,9 +6,11 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " plug-in插件配置
-call plug#begin('~/.vim/plugged')                                          
+call plug#begin('~/.vim/plugged')
+                                     
 Plug 'scrooloose/nerdtree'
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'Valloric/YouCompleteMe'
+
 call plug#end()
 
 
@@ -25,6 +27,23 @@ let g:NERDTreeDirArrowExpandable = '+'       " 修改树的显示图标
 let g:NERDTreeDirArrowCollapsible = '-'      " 修改树的显示图标
 "let g:NERDTreeSize=20                       " 窗口尺寸
 let g:NERDTreeShowLineNumbers=1              " 窗口是否显示行号
+
+
+
+set completeopt=menu,menuone
+let g:ycm_server_python_interpreter='/usr/bin/python3'
+let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
+let g:ycm_add_preview_to_completeopt = 0
+let g:ycm_server_log_level = 'info'
+let g:ycm_min_num_identifier_candidate_chars = 2
+let g:ycm_collect_identifiers_from_comments_and_strings = 0
+let g:ycm_complete_in_strings=1
+highlight PMenu ctermfg=0 ctermbg=242 guifg=black guibg=darkgrey
+let g:ycm_semantic_triggers =  {
+                        \ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
+                        \ 'cs,lua,javascript': ['re!\w{2}'],
+                        \ }
+filetype plugin indent on
 
 
 
