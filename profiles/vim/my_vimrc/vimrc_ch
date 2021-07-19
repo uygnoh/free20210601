@@ -4,8 +4,7 @@
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 " https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" plug-in插件配置
+" plug-in 插件配置
 call plug#begin('~/.vim/plugged')
                                      
 Plug 'scrooloose/nerdtree'
@@ -16,7 +15,7 @@ call plug#end()
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => NERDTreeFind插件配置
+" => NERDTreeFind 插件配置
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nnoremap ,v :NERDTreeFind<cr>                " ,v 设置为开关NERDTree的快捷键
 nnoremap ,g :NERDTreeToggle<cr>              " ,g 设置为开关NERDTree的快捷键
@@ -30,25 +29,31 @@ let g:NERDTreeShowLineNumbers=1              " 窗口是否显示行号
 
 
 
-set completeopt=menu,menuone
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => YouCompleteMe 插件配置
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ycm_server_python_interpreter='/usr/bin/python3'
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
 let g:ycm_add_preview_to_completeopt = 0
+let g:ycm_show_diagnostics_ui = 0
 let g:ycm_server_log_level = 'info'
 let g:ycm_min_num_identifier_candidate_chars = 2
-let g:ycm_collect_identifiers_from_comments_and_strings = 0
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
 let g:ycm_complete_in_strings=1
-highlight PMenu ctermfg=0 ctermbg=242 guifg=black guibg=darkgrey
+let g:ycm_key_invoke_completion = '<c-z>'
+set completeopt=menu,menuone
+
+noremap <c-z> <NOP>
+
 let g:ycm_semantic_triggers =  {
-                        \ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
-                        \ 'cs,lua,javascript': ['re!\w{2}'],
-                        \ }
-filetype plugin indent on
+			\ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
+			\ 'cs,lua,javascript': ['re!\w{2}'],
+			\ }
 
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => molokai配色主题配置
+" => molokai 配色主题
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 colorscheme  molokai 
 set t_Co=256            " 启用256色 
@@ -59,7 +64,7 @@ let g:rehash256=1
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => VIM 显示 & 行号 & 光标设置 
+" => 常规设置 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set cursorline          " 高亮显示当前行
 syntax enable           " 语法高亮 
@@ -153,45 +158,6 @@ cnoremap <C-e> <End>
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => 自动插入文件头 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-autocmd BufNewFile *.cpp,*.cc,*.c,*.h,*.sh,*.py exec ":call SetHeader()" 
-function! SetHeader() 
-    if expand("%:e") == 'sh' 
-        call setline(1,"\#!/bin/bash") 
-        call append(line("."), "") 
-    elseif expand("%:e") == 'py' 
-        call setline(1,"#!/usr/bin/env python3") 
-        call append(line(".")+1, "") 
-    elseif expand("%:e") == 'cpp' 
-        call setline(1,"#include <iostream>") 
-        call setline(2, "") 
-        call setline(3, "using std::cin;") 
-        call setline(4, "using std::cout;") 
-        call setline(5, "using std::endl;") 
-        call setline(6, "") 
-    elseif expand("%:e") == 'cc' 
-        call setline(1,"#include <iostream>") 
-        call setline(2, "") 
-        call setline(3, "using std::cin;") 
-        call setline(4, "using std::cout;") 
-        call setline(5, "using std::endl;") 
-        call setline(6, "") 
-    elseif expand("%:e") == 'c' 
-        call setline(1,"#include <stdio.h>") 
-        call setline(2,"#include <stdlib.h>") 
-        call setline(3,"") 
-    elseif expand("%:e") == 'h' 
-        call setline(1, "#ifndef __".toupper(expand("%:r"))."_H") 
-        call setline(2, "#define __".toupper(expand("%:r"))."_H") 
-        call setline(3,"") 
-        call setline(4, "#endif") 
-    endif 
-endfunction
-
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => 自动命令分组
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup configgroup
@@ -204,6 +170,3 @@ augroup configgroup
 augroup END
 
 autocmd BufNewFile * normal G
-
-
-
