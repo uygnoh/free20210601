@@ -51,9 +51,9 @@ GDB             =$(TC)-gdb
 
 
 ### 头文件包括
-INCLUDE	        =-I$(TOP)/include
-INCLUDE	        =-I$(TOP)/startup
-INCLUDE	        =-I$(TOP)/user
+INCLUDE	        +=-I$(TOP)/include
+INCLUDE	        +=-I$(TOP)/startup
+INCLUDE	        +=-I$(TOP)/user
 ### cmsis目录下的头文件包括
 CMSISDIR        =$(TOP)/cmsis
 CMSISLIB        =$(CMSISDIR)

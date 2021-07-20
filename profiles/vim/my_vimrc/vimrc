@@ -1,32 +1,4 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => 安装vim-plug插件管理器                  
-" Download plug.vim and put it in ~/.vim/autoload
-" curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-" https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" plug-in 插件配置
-call plug#begin('~/.vim/plugged')                   
-Plug 'scrooloose/nerdtree'
-call plug#end()
-
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => NERDTreeFind 插件配置
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-nnoremap ,v :NERDTreeFind<cr>                " ,v 设置为开关NERDTree的快捷键
-nnoremap ,g :NERDTreeToggle<cr>              " ,g 设置为开关NERDTree的快捷键
-autocmd vimenter * NERDTree                  " 打开vim时自动打开NERDTree
-autocmd vimenter * if !argc()|NERDTree|endif " 打开vim时如果没有文件自动打开NERDTree
-let g:NERDTreeHidden=0                       " 不显示隐藏文件
-let g:NERDTreeDirArrowExpandable = '+'       " 修改树的显示图标
-let g:NERDTreeDirArrowCollapsible = '-'      " 修改树的显示图标
-"let g:NERDTreeSize=20                       " 窗口尺寸
-let g:NERDTreeShowLineNumbers=1              " 窗口是否显示行号
-
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => molokai 配色主题
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 colorscheme  molokai 
@@ -116,19 +88,11 @@ set langmenu=zh_CN.UTF-8
 set helplang=cn
 set mouse=a  
 set selection=exclusive  
-set selectmode=mouse,key  
-
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => 窗格切换  & 命令行模式增强
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-nnoremap <C-h> <C-w>h
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
-cnoremap <C-a> <Home>
-cnoremap <C-e> <End>
+set selectmode=mouse,key
+""" 光标在不同模式下的形状
+let &t_SI = "\<Esc>]50;CursorShare=1\x7"
+let &t_SR = "\<Esc>]50;CursorShare=2\x7"
+let &t_EI = "\<Esc>]50;CursorShare=0\x7"
 
 
 
@@ -136,8 +100,19 @@ cnoremap <C-e> <End>
 " => Mapping
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 inoremap jk <esc> " 映射插入模式下的 jk 键为 ESC 键
-inoremap vv <esc> " 映射插入模式下的 vv 键为 ESC 键
 
+map sr :set splitright<CR>:vsplit<CR>       """% 右边分屏
+map sl :set nosplitright<CR>:vsplit<CR>     """% 左边分屏
+map su :set nosplitbelow<CR>:split<CR>      """% 上边分屏
+map se :set splitbelow<CR>:split<CR>        """% 下边分屏
+map <LEADER>i <C-W>l                        """% 左
+map <LEADER>u <C-W>k                        """% 上
+map <LEADER>n <C-W>h                        """% 右
+map <LEADER>e <C-W>j                        """% 下
+map <up> :res +5<CR>                        """% 上下分屏增大
+map <down> :res -5<CR>                      """% 上下分屏减小
+map <left> :vertical resize-5<CR>           """% 左右分屏减小
+map <right> :vertical resize+5<CR>          """% 左右分屏增大
 
 
 
