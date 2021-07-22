@@ -1,3 +1,13 @@
+" Plugins
+call plug#begin('~/.vim/plugged')                   
+"""Plug 'scrooloose/nerdtree'
+"""Plug 'Valloric/YouCompleteMe'
+call plug#end()
+
+
+
+
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => molokai 配色主题
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -16,7 +26,7 @@ set cursorline          " 高亮显示当前行
 syntax enable           " 语法高亮 
 syntax on               " 语法高亮
 set novisualbell        " turn off visual bell
-set visualbell t_vb=    " turn off error beep/flash
+"set visualbell t_vb=    " turn off error beep/flash
 set nocompatible        " 不与vi兼容(采用vim自己的操作命令)    
 set showcmd             " 输入的命令显示出来，看的清楚些
 set magic               " 设置魔术 
@@ -33,7 +43,7 @@ set ttyfast             " 使屏幕显示更流畅
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => tab & 缩进 & 正常处理indent, eol, start等 
+" => tab  缩进  正常处理indent, eol, start等 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "set expandtab           " 用空格代替制表符 
 set noexpandtab         " 不要用空格代替制表符
@@ -60,7 +70,7 @@ set backspace=2
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => 文件类型侦测 & 查找 & 文件备份 
+" => 文件类型侦测  查找  文件备份 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 filetype on             " 侦测文件类型     
 filetype indent on      " 文件类型，开启缩进规则
@@ -72,13 +82,14 @@ set incsearch           " 输入搜索内容时就显示搜索结果
 set showmatch           " 高亮显示匹配的括号     
 set matchtime=5         " 匹配括号高亮的时间（单位是十分之一秒）
 set smartcase           " 此选项的开启会让搜索模式更加聪明
-set nobackup            " 用来控制我们是否为当前正在编辑的文件建立备份
 set confirm             " 在处理未保存或只读文件的时候，弹出确认
+set nobackup            " 用来控制我们是否为当前正在编辑的文件建立备份
+set noswapfile
 
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => 编码设置 & 语言设置 & 鼠标设置
+" => 编码设置  语言设置  鼠标设置
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set encoding=utf-8
 set fileencodings=ucs-bom,utf-8,cp936
@@ -86,33 +97,31 @@ set fileencoding=gb2312
 set termencoding=utf-8
 set langmenu=zh_CN.UTF-8  
 set helplang=cn
-set mouse=a  
-set selection=exclusive  
-set selectmode=mouse,key
-""" 光标在不同模式下的形状
-let &t_SI = "\<Esc>]50;CursorShare=1\x7"
-let &t_SR = "\<Esc>]50;CursorShare=2\x7"
-let &t_EI = "\<Esc>]50;CursorShare=0\x7"
+"set mouse=a  
+"set selection=exclusive  
+"set selectmode=mouse,key
 
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Mapping
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-inoremap jk <esc> " 映射插入模式下的 jk 键为 ESC 键
+let mapleader=','
+nmap <leader>w :w!<cr>  " Fast saving
+inoremap jk <esc>       " 插入模式下的 (jk键)映射为(ESC键)
 
-map sr :set splitright<CR>:vsplit<CR>       """% 右边分屏
-map sl :set nosplitright<CR>:vsplit<CR>     """% 左边分屏
-map su :set nosplitbelow<CR>:split<CR>      """% 上边分屏
-map se :set splitbelow<CR>:split<CR>        """% 下边分屏
-map <LEADER>i <C-W>l                        """% 左
-map <LEADER>u <C-W>k                        """% 上
-map <LEADER>n <C-W>h                        """% 右
-map <LEADER>e <C-W>j                        """% 下
-map <up> :res +5<CR>                        """% 上下分屏增大
-map <down> :res -5<CR>                      """% 上下分屏减小
-map <left> :vertical resize-5<CR>           """% 左右分屏减小
-map <right> :vertical resize+5<CR>          """% 左右分屏增大
+map sr :set splitright<CR>:vsplit<CR>       " 右边分屏
+map sl :set nosplitright<CR>:vsplit<CR>     " 左边分屏
+map su :set nosplitbelow<CR>:split<CR>      " 上边分屏
+map se :set splitbelow<CR>:split<CR>        " 下边分屏
+map <LEADER>i <C-W>l                        " 左
+map <LEADER>u <C-W>k                        " 上
+map <LEADER>n <C-W>h                        " 右
+map <LEADER>e <C-W>j                        " 下
+map <up> :res +5<CR>                        " 上下分屏增大
+map <down> :res -5<CR>                      " 上下分屏减小
+map <left> :vertical resize-5<CR>           " 左右分屏减小
+map <right> :vertical resize+5<CR>          " 左右分屏增大
 
 
 

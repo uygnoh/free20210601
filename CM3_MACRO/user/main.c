@@ -1,4 +1,5 @@
 #include "stm32f10x.h"
+
 void led_test(void)
 {
 	m_gpioc_clock_enable();

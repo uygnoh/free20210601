@@ -15,6 +15,9 @@ sudo chmod 755 ~/.local/share/fonts/Monaco.ttf
 sudo fc-cache
 sudo fc-cache -f -v
 
+% debian_terminal使用此字体
+cp monaco.ttf /usr/share/fonts/truetype/
+fc-cache -f -v
 
 
 ###########################################################
