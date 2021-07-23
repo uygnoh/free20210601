@@ -1,6 +1,6 @@
 #ifndef __CM_PRINT_H__
 #define __CM_PRINT_H__
-//#define UART_SERIAL	1
+#define UART_SERIAL	1
 
 #ifdef UART_SERIAL
 /******************************************************************************/

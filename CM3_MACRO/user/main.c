@@ -13,8 +13,22 @@ void led_test(void)
 		delay_ms(100);
 	}
 }
-int main(void)
 
+void debug_usart(void)
 {
+	uint8_t i;
+	char *strs = "Hello World\r\n";
+	for (i = 0;  i < 11; i++) {
+		while (!(USART1->SR & 0x40))
+			USART1->DR = *strs++;
+	}
+	delay_ms(500);
+
+}
+
+int main(void)
+{
+	usart_setup();
+	debug_usart();
 	led_test();
 }

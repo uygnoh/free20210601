@@ -102,7 +102,9 @@ int main(void)
 	  		HAL_UART_Transmit(&huart1, strs, strlen(strs), 100);
 	  		HAL_Delay(500);
 	  		printf("Test1\r\n");
+
 	  	}
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
