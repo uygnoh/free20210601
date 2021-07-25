@@ -22,8 +22,8 @@ NEC编解码格式顺序：
 sbit IR_EN	P1^2;
 
 
-// 发射38kHz载波信号
-// 发射 i 个周期
+// % 发射38kHz载波信号
+// % 发射 i 个周期
 void send_ir(uint8_t i)
 {
 	while (i--) {
@@ -34,7 +34,6 @@ void send_ir(uint8_t i)
 		delay_8_77us();
 	}
 }
-
 // % 不发射红外载波信号
 // % 不发射 i 个周期
 void no_send_ir(uint8_t i)
@@ -134,18 +133,4 @@ void EX0_ISR(void) interrupt 0
 	else
 		send_nec_message(0xFF, 0x55);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
