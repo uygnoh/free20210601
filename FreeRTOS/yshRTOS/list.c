@@ -1,4 +1,5 @@
 #include "list.h"
+#include <stdio.h>
 
 void list_item_initialize(list_item_t *const item)
 {
@@ -9,79 +10,115 @@ void list_item_initialize(list_item_t *const item)
 void list_initialize(list_t *const list)
 {
 	//将链表索引指针指向最后一个节点
-	list->index = (list_item_t *)&(list->list_end);
+	list->index = (list_item_t *)&(list->end);
 	
 	//将链表最后一个节点的辅助排序值设置为最大，确保该节点就是链表的最后节点
-	list->list_end.item_value = MAX_VALUE;
+	list->end.item_value = MAX_VALUE;
 	
 	//将最后一个节点的next和prev指针均指向节点自身，表示链表为空
-	list->list_end.next = (list_item_t *)&(list->list_end);
-	list->list_end.prev = (list_item_t *)&(list->list_end);
+	list->end.next = (list_item_t *)&(list->end);
+	list->end.prev = (list_item_t *)&(list->end);
 	
 	//初始化链表节点计数器为0， 表示链表为空
 	list->item_counter = (uint32_t)0U;
 }
 
 /* 将节点插入链表的尾部 */
-void list_insert_end(list_t *const list, list_item_t *const new_list_item)
+void list_insert_end(list_t *const list, list_item_t *const new_item)
 {
 	list_item_t *const index = list->index;
 	
-	new_list_item->next = index;
-	new_list_item->prev = index->prev;
-	index->prev->next   = new_list_item;
-	index->prev         = new_list_item;
+	new_item->next      = index;
+	new_item->prev      = index->prev;
+	index->prev->next   = new_item;
+	index->prev         = new_item;
 	
 	//记住该节点所在的链表
-	new_list_item->container = (void *)list;
+	new_item->container = (void *)list;
 	//链表节点计数器++
 	(list->item_counter)++;
 }
 
 /* 将节点按照升序排列插入到链表中 */
-void list_insert(lit_t *const list, list_item *const new_list_item)
+void list_insert(list_t *const list, list_item_t *const new_item)
 {
 	list_item_t *iterator;
-	
+
 	//获取插入节点的排序辅助值
-	const uint32_t insert_value = new_list_item->item_value;
+	const uint32_t insert_value = new_item->item_value;
 	
 	//寻找节点要插入的位置
-	if (insert_value == MAX_DELAY) 
-		iterator = list->list_end.prev;
-	else 
-		for (iterator = (list_item_t *)&(list->list_end);
-			iterator->next->iterm_value <= insert_value;
+	if (insert_value == MAX_VALUE) 
+		iterator = list->end.prev;
+	else
+		for (iterator = (list_item_t *)&(list->end);
+			iterator->next->item_value <= insert_value;
 				iterator = iterator->next);
+
 	//根据升序排序，将节点插入
-	new_list_item->next = iterator->next;
-	new_list_item->next->prev = new_list_item;
-	new_list_item->prev = iterator;
-	iterator->next = new_list_item;
+	new_item->next       = iterator->next;
+	new_item->next->prev = new_item;
+	new_item->prev       = iterator;
+	iterator->next       = new_item;
 	
 	//记住该节点所在链表
-	new_list_item->container = (void *)list;
+	new_item->container = (void *)list;
 	//链表节点计数器++
 	(list->item_counter)++;
 }
 
-uint32_t list_remove(list_item *const item_remove)
+uint32_t list_remove(list_item_t *const remove_item)
 {
 	//获取节点所在链表
-	list_t *const list = (list_t *)item_remove->container;
+	list_t *const list = (list_t *)remove_item->container;
 	//将指定的节点从链表中删除
-	item_remove->next->prev = item_remove->prev;
-	item_remove->prev->next = item_remove->next;
+	remove_item->next->prev = remove_item->prev;
+	remove_item->prev->next = remove_item->next;
 	
 	//调整链表的节点索引指针
-	if (list->index == item_remove)
-		list->index = item_remove->prev;
+	if (list->index == remove_item)
+		list->index = remove_item->prev;
 	
 	//初始化该节点所在的链表为空，表示节点还没有插入任何链表
-	item_remove->container = NULL;
+	remove_item->container = NULL;
 	
 	//链表节点计数器--
 	(list->item_counter)--;
 	//返回链表中剩余节点的个数
 	return list->item_counter;
 }
+
+
+/*******************************************************************************
+				main.c
+*******************************************************************************/
+struct list list_test;
+struct list_item list_item1;
+struct list_item list_item2;
+struct list_item list_item3;
+
+int main(void)
+{
+	
+	list_initialize(&list_test);
+	
+	list_item_initialize(&list_item1);
+	list_item1.item_value = 1;
+	
+	list_item_initialize(&list_item2);
+	list_item2.item_value = 2;
+	
+	list_item_initialize(&list_item3);
+	list_item3.item_value = 3;
+
+	list_insert(&list_test, &list_item2);
+	list_insert(&list_test, &list_item1);
+	list_insert(&list_test, &list_item3);
+	printf("%d\n", list_item2.item_value);
+	list_remove(&list_item3);
+	printf("%d\n", sizeof(int));
+}
+
+
+
+
