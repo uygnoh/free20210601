@@ -1,12 +1,14 @@
 #include "list.h"
 #include <stdio.h>
 
+/* 链表节点初始化 */
 void list_item_initialize(list_item_t *const item)
 {
 	//初始化该节点所在的链表为空，表示节点还没有插入任何链表
 	item->container = NULL;
 }
 
+/* 链表初始化 */
 void list_initialize(list_t *const list)
 {
 	//将链表索引指针指向最后一个节点
@@ -67,6 +69,7 @@ void list_insert(list_t *const list, list_item_t *const new_item)
 	(list->item_counter)++;
 }
 
+/* 将节点从链表中移出 */
 uint32_t list_remove(list_item_t *const remove_item)
 {
 	//获取节点所在链表
@@ -87,38 +90,3 @@ uint32_t list_remove(list_item_t *const remove_item)
 	//返回链表中剩余节点的个数
 	return list->item_counter;
 }
-
-
-/*******************************************************************************
-				main.c
-*******************************************************************************/
-struct list list_test;
-struct list_item list_item1;
-struct list_item list_item2;
-struct list_item list_item3;
-
-int main(void)
-{
-	
-	list_initialize(&list_test);
-	
-	list_item_initialize(&list_item1);
-	list_item1.item_value = 1;
-	
-	list_item_initialize(&list_item2);
-	list_item2.item_value = 2;
-	
-	list_item_initialize(&list_item3);
-	list_item3.item_value = 3;
-
-	list_insert(&list_test, &list_item2);
-	list_insert(&list_test, &list_item1);
-	list_insert(&list_test, &list_item3);
-	printf("%d\n", list_item2.item_value);
-	list_remove(&list_item3);
-	printf("%d\n", sizeof(int));
-}
-
-
-
-
