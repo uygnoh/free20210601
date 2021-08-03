@@ -1,0 +1,5 @@
+list.c:5:6:list_item_initialize	16	static
+list.c:12:6:list_initialize	16	static
+list.c:29:6:list_insert_end	24	static
+list.c:45:6:list_insert	24	static
+list.c:73:10:list_remove	24	static

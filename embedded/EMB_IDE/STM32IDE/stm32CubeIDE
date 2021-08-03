@@ -1,69 +1,19 @@
 ############################################################
-### % 自动补全
+### % STM32CubeIDE
 ############################################################
-1 % https://download.eclipse.org/tools/cdt/releases/9.11
-选择( CDT Main Features )
-
-2 % http://download.eclipse.org/releases/photon
-选择( General Purpose Tools ->Eclipse Plug-in Development Environment )
+0 % C/C++ 编译器选项
+Porject ->properties ->C/C++ Build ->Settings
 
 
-3、打开 window->show view，选择 plugin-ins。在plugin-ins找到 org.eclipse.cdt.ui 。
-右键单击，选择import as -> source project，导入之后在你的 workspace就可以看到这个插件工程。
-
-4、找到
-/org.eclipse.cdt.ui/src/org.eclipse.cdt.internal.ui.text.contentassist/ContentAssistProcessor.java
-修改public void setCompletionProposalAutoActivationCharacters(char[] activationSet)
-public void setCompletionProposalAutoActivationCharacters(char[] activationSet) {
-        //fCompletionAutoActivationCharacters= activationSet;
-        String test = ".ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        char[] triggers = test.toCharArray();
-        fCompletionAutoActivationCharacters = triggers;
-}
+1 % C/C++ 源文件和头文件路径设置
+Porject ->properties ->C/C++ General ->Paths an Symbols
+Includes
+Source Location
 
 
-5、找到
-/org.eclipse.cdt.ui/src/org.eclipse.cdt.internal.ui.text.contentassist/CContentAssistProcessor.java
-修改protected boolean verifyAutoActivation(ITextViewer viewer, int offset)
-protected boolean verifyAutoActivation(ITextViewer viewer, int offset) {
-    IDocument doc= viewer.getDocument();
-    if (doc == null) {
-        return false;
-    }
-    if (offset <= 0) {
-        return false;
-    }
-    try {
-        char activationChar= doc.getChar(--offset);
-        switch (activationChar) {
-        case ':':
-            return offset > 0 && doc.getChar(--offset) == ':';
-        case '>':
-            return offset > 0 && doc.getChar(--offset) == '-';
-        case '.':
-            // Avoid completion of float literals
-            CHeuristicScanner scanner= new CHeuristicScanner(doc);
-            int token= scanner.previousToken(--offset, Math.max(0, offset - 200));
-            // The scanner reports numbers as identifiers
-            if (token == Symbols.TokenIDENT && !Character.isJavaIdentifierStart(doc.getChar(scanner.getPosition() + 1))) {
-                // Not a valid identifier
-                return false;
-            }
-            return true;
-        // % 添加这两行代码
-        default:
-               return activationChar >= 97 && activationChar <= 122?true:activationChar >= 65 && activationChar <= 90;
-        }
-    } catch (BadLocationException e) {
-    }
-    return false;
-}
-
-
-
-6 下面就可以导出了，在工程上右键->Export，选择JAR file
-
-
+3 % STM32CubeIDE Tab键设置
+Window ->Preferences ->C/C++ ->Code Style ->Formatter ->Edit
+Profile name: [freeysh]
 
 ############################################################
 ### % STM32CubeIDE调式Error
