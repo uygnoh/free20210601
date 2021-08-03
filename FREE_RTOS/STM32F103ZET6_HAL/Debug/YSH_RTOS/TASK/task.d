@@ -20,7 +20,8 @@ YSH_RTOS/TASK/task.o: ../YSH_RTOS/TASK/task.c ../YSH_RTOS/TASK/task.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
+ /home/freeysh/Documents/GIT_HUB/FREE_RTOS/STM32F103ZET6_HAL/YSH_RTOS/LIST/list.h
 
 ../YSH_RTOS/TASK/task.h:
 
@@ -67,3 +68,5 @@ YSH_RTOS/TASK/task.o: ../YSH_RTOS/TASK/task.c ../YSH_RTOS/TASK/task.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h:
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h:
+
+/home/freeysh/Documents/GIT_HUB/FREE_RTOS/STM32F103ZET6_HAL/YSH_RTOS/LIST/list.h:

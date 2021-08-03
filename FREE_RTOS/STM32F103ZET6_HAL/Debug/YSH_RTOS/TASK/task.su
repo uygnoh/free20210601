@@ -1,0 +1,4 @@
+task.c:4:15:task_create	40	static
+task.c:38:13:task_initialize	32	static
+task.c:77:6:task_exit_error	4	static
+task.c:83:11:task_stack_initialize	24	static

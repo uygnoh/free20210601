@@ -23,7 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "m32.h"
+#include "sys_tick.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -93,6 +94,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  m32_pa_out(2) = 0;
+	  delay_ms(1000);
+	  m32_pa_out(2) = 1;
+	  delay_ms(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

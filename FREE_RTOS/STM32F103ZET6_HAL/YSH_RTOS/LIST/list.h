@@ -28,8 +28,8 @@ struct list {
 typedef struct list list_t;
 
 //设置节点的拥有者，通常是指任务控制块TCB
-#define SET_LIST_ITEM_OWNER(item, owner)\
-	((item)->owner = (void *)(owner))
+#define SET_LIST_ITEM_OWNER(item, owners)\
+	((item)->owner = (void *)(owners))
 
 //获得节点的拥有者
 #define GET_LIST_ITEM_OWNER(item)\
@@ -77,4 +77,9 @@ typedef struct list list_t;
 	(tcb) = (const_list)->index->owner;					\
 }
 
+void list_item_initialize(list_item_t *const item);
+void list_initialize(list_t *const list);
+void list_insert_end(list_t *const list, list_item_t *const new_item);
+void list_insert(list_t *const list, list_item_t *const new_item);
+uint32_t list_remove(list_item_t *const remove_item);
 #endif

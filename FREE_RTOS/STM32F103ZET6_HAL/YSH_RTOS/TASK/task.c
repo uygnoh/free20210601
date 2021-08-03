@@ -13,7 +13,7 @@ task_handle_t task_create(
 	//定义一个任务句柄task_handle，任务句柄用于指向任务的TCB
 	task_handle_t task_handle;
 	
-	if ((task_stack_addr != NULL) && (new_tcb != NULL)) {
+	if ((task_stack_addr != NULL) && (tcb_ptr != NULL)) {
 		new_tcb = (tcb_t *)tcb_ptr;
 		new_tcb->stack = (uint32_t *)task_stack_addr;
 	
@@ -38,7 +38,7 @@ task_handle_t task_create(
 static void task_initialize(
 	task_function_t 	task_entry,	//任务入口
 	const char * const 	task_name,	//任务名称
-	const uint32_t 	task_stack_size,//任务栈大小
+	const uint32_t		task_stack_size,//任务栈大小
 	void * const 		task_parameter,	//任务形参
 	task_handle_t * const 	task_handle,	//任务句柄
 	tcb_t *			new_tcb)	//任务控制块指针
@@ -57,7 +57,7 @@ static void task_initialize(
 			break;
 	}
 	//任务名字长度不能超过MAX_TASK_NAME
-	new_tcb->name[MAX_TASK_NAME - 1] = '\0';
+	new_tcb->name[MAX_TASK_NAME_LEN - 1] = '\0';
 	
 	//初始化TCB中的state_list_item节点
 	list_item_initialize(&(new_tcb->state_list_item));
@@ -74,7 +74,7 @@ static void task_initialize(
 		*task_handle = (task_handle_t)new_tcb;
 }
 
-static void task_exit_error(void)
+void task_exit_error(void)
 {
 	for (;;);
 }
