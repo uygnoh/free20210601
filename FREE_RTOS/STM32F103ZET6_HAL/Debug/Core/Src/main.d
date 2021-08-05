@@ -21,10 +21,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
- ../Core/Inc/gpio.h ../Core/Inc/main.h \
- /home/freeysh/Documents/GIT_HUB/FREE_RTOS/STM32F103ZET6_HAL/YSH_BSP/m32.h \
- ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xe.h \
- /home/freeysh/Documents/GIT_HUB/FREE_RTOS/STM32F103ZET6_HAL/YSH_BSP/TIMER/sys_tick.h
+ ../Core/Inc/gpio.h ../Core/Inc/main.h
 
 ../Core/Inc/main.h:
 
@@ -75,9 +72,3 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/gpio.h:
 
 ../Core/Inc/main.h:
-
-/home/freeysh/Documents/GIT_HUB/FREE_RTOS/STM32F103ZET6_HAL/YSH_BSP/m32.h:
-
-../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xe.h:
-
-/home/freeysh/Documents/GIT_HUB/FREE_RTOS/STM32F103ZET6_HAL/YSH_BSP/TIMER/sys_tick.h:

@@ -85,13 +85,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/STM32F103ZET6_HAL/YSH_RTOS/LIST}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/STM32F103ZET6_HAL/FREE_RTOS/include}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/STM32F103ZET6_HAL/YSH_RTOS/TASK}&quot;"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/STM32F103ZET6_HAL/YSH_BSP}&quot;"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/STM32F103ZET6_HAL/YSH_BSP/TIMER}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/STM32F103ZET6_HAL/FREE_RTOS/portable}&quot;"/>
                                     								
                                 </option>
                                 								
@@ -145,11 +141,11 @@
                     					
                     <sourceEntries>
                         						
-                        <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="YSH_RTOS"/>
-                        						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+                        						
+                        <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="FREE_RTOS"/>
                         					
                     </sourceEntries>
                     				

@@ -23,6 +23,6 @@ SUBDIRS := \
 Core/Src \
 Core/Startup \
 Drivers/STM32F1xx_HAL_Driver/Src \
-YSH_RTOS/LIST \
-YSH_RTOS/TASK \
+FREE_RTOS \
+FREE_RTOS/portable \
 
