@@ -21,6 +21,7 @@
 "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o"
 "FREE_RTOS/croutine.o"
 "FREE_RTOS/event_groups.o"
+"FREE_RTOS/heap_4.o"
 "FREE_RTOS/list.o"
 "FREE_RTOS/queue.o"
 "FREE_RTOS/tasks.o"

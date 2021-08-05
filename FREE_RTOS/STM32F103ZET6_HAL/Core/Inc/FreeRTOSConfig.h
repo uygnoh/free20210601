@@ -1,6 +1,7 @@
 #ifndef __FREERTOS_CONFIG_H__
 #define __FREERTOS_CONFIG_H__
 
+#include <stdio.h>
 #include "stm32f103xe.h"
 
 
@@ -28,20 +29,9 @@
 //置1_(使能时间片调度, 默认是使能的)
 #define configUSE_TIME_SLICING			1		
 
-/* FreeRTOS支持2种，获取当前要运行任务的方法
- * 
- * 通用方法：
- *      1.configUSE_PORT_OPTIMISED_TASK_SELECTION设置为_0
- *      2.可以用于所有FreeRTOS支持的硬件
- *      3.完全用C实现，效率略低于特殊方法。
- *      4.不强制要求限制最大可用优先级数目
- * 特殊方法：
- *      1.必须将configUSE_PORT_OPTIMISED_TASK_SELECTION设置为_1
- *      2.依赖一个或多个特定架构的汇编指令（一般是类似计算前导零[CLZ]指令）。
- *      3.比通用方法更高效
- *      4.一般强制限定最大可用优先级数目为32
- * 一般是硬件计算前导零指令，如果所使用的，MCU没有这些硬件指令的话此宏应该设置为0！
- */
+//FreeRTOS支持2种，获取当前要运行任务的方法
+//置0_(通用方法), 支持所有硬件
+//置1_(特殊方法), 依赖一个或多个特定架构的汇编指令（一般是类似计算前导零[CLZ]指令）
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION		1
 
                                                             
@@ -207,17 +197,16 @@
 #else
 	#define configPRIO_BITS								4   
 #endif
+
 //中断最低优先级
 #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY			15
 
 //系统可管理的最高中断优先级
 #define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY	5
-
 #define configKERNEL_INTERRUPT_PRIORITY \
-( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )/* 240 */
-
+(configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) 
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY \
-( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
 
 
 
@@ -228,11 +217,11 @@
 #define vPortSVCHandler				SVC_Handler
 
 
-// 以下为使用Percepio Tracealyzer需要的东西，
-// 不需要时将 configUSE_TRACE_FACILITY 定义为 0 
-#if ( configUSE_TRACE_FACILITY == 1 )
+//以下为使用 Percepio Tracealyzer 需要的东西，
+//不需要时将 configUSE_TRACE_FACILITY 定义为 0 
+#if (configUSE_TRACE_FACILITY == 1)
   #include "trcRecorder.h"
-  // 启用一个可选函数（该函数被 Trace源码使用，默认该值为0 表示不用）
+  //启用一个可选函数（该函数被 Trace源码使用，默认该值为0 表示不用）
   #define INCLUDE_xTaskGetCurrentTaskHandle	1
 #endif
 
