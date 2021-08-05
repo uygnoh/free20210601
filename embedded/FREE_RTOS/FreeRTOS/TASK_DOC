@@ -1,5 +1,7 @@
 #include "list.h"
-
+/*******************************************************************************
+                               main.c
+*******************************************************************************/
 // 任务控制块结构体
 typedef struct tskTaskControlBlock {
         volatile StackType_t *pxTopOfStack;		//栈顶
@@ -32,9 +34,6 @@ TaskHandle_t Task2_Handle;
 TCB_t * volatile pxCurrentTCB = NULL;
 
 
-############################################################
-### // main.c
-############################################################
 int main(void)
 {	
 	// 初始化任务列表
@@ -92,9 +91,9 @@ void Task2_Entry(void *p_arg)
 
 
 
-############################################################
-###  // 静态任务创建函数
-############################################################
+/*******************************************************************************
+                               静态任务创建函数
+*******************************************************************************/
 TaskHandle_t xTaskCreateStatic(
         TaskFunction_t pxTaskCode,           //任务入口
         const char * const pcName,          //任务名称
@@ -307,11 +306,6 @@ __asm void vProtSVCHandler(void)
 
 
 
-#define xPortPendSVHandler	PendSV_Handler
-#define xPortSysTickHandler	SysTick_Handler
-#define xPortSVCHandler		SVC_Handler
-
-
 // 任务切换函数： taskYIELD()
 // 任务切换就是在就绪列表中寻找优先级最高的就绪任务，然后去执行该任务。
 // portYIEDL的实现很简单，实际就是将PendSV的悬起位置“1”，
@@ -334,14 +328,20 @@ __asm void vProtSVCHandler(void)
 // 调用PendSV_Handler异常
 __asm void xPortPendSVHandler(void)
 {
+		//声明外部变量pxCurrentTCB，pxCurrentTCB是一个在task.c中定义的全局指针，
+		//用于指向当前正在运行或者即将要运行的任务的任务控制块。
         extern pxCurrentTCB;
+        //声明外部函数vTaskSwitchContext
         extern xTaskSwitchContext;
+        
+        //当前栈需按照8字节对齐，如果都是32位的操作则4个字节对齐即可。
+        //在Cortex-M中浮 点运算是8字节的
         PRESERVE8
-        // 当进入PendSVC_Handler时，上一个任务运行的环境即：
-        // xPSR, PC(任务入口地址), R14, R12, R3, R2, R1, R0(任务形参)，
-        // 这些CPU寄存器的值会自动保存到任务的栈中，剩下的 R4~R11需要手动保存
-
-        // 获取任务栈指针到R0
+        
+		//将PSP的值存储到r0。当进入PendSVC Handler时，
+		//上一个任务运行的环境即：xPSR， PC（任务入口地址），
+		//R14，R12，R3，R2，R1，R0（任务的形参）这些CPU寄存器的值会自动存储到任务的栈中，
+		//剩下的r4~r11需要手动保存，   同时PSP会自动更新（在更新之前PSP指向任务栈的栈顶）
         mrs r0, psp
         isb
 
@@ -352,8 +352,12 @@ __asm void xPortPendSVHandler(void)
 
         // 将CPU寄存器R4~R11的值存储到R0指向的地址
         stmdb r0!, {r4-r11}
-        // 将任务的栈的新的栈顶指针存储到当前任务TCB的第一个成员，即栈顶指针
+        //将r0的值存储到r2指向的内容，r2等于pxCurrentTCB。
+        //具体为将r0的值存储到上一个任务的栈顶指针pxTopOfStack，
         str r0, [r2]
+        
+                      //到此，上下文切换中的上文保存就完成了//
+					////////////////////////////////////
 
         //将R3和R14压入堆栈，因为即将调用函数vTaskSwitchContext,
         //调用函数时，返回地址自动保存到R14中。所以一旦调用发生，R14的值会被覆盖，
