@@ -5,12 +5,14 @@
 
 // 局部变量
 tmp		临时变量
-flag		标志
-pos		位置
-ret		返回值
-size		大小
-num		数字
-len		长度
+flags		标志临时变量
+pos		位置临时变量
+num		数字临时变量
+len		长度临时变量
+retval		返回值临时变量
+struct pid *pid_
+struct pid **pid_ptr
+
 
 // UART通信
 uart_tx_buf[];

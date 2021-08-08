@@ -18,16 +18,3 @@
 2、rm /etc/localtime
 3、链接到上海时区文件       
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-
-
-
-
-
-
-
-
-
-
-
-
-
