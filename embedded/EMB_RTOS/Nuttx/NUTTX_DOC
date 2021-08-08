@@ -37,14 +37,14 @@ cd openocd
 ./bootstrap
 ./configure --enable-internal-jimtcl\
             --enable-maintainer-mode\
-            --disable-werror		\
-            --disable-shared		\
-            --enable-stlink			\
-            --enable-jlink			\
-            --enable-rlink			\
-            --enable-vsllink		\
-            --enable-ti-icdi		\
-            --enable-remote-bitbang	\
+            --disable-werror        \
+            --disable-shared        \
+            --enable-stlink         \
+            --enable-jlink          \
+            --enable-rlink          \
+            --enable-vsllink        \
+            --enable-ti-icdi        \
+            --enable-remote-bitbang \
 
 
 2 % 安装OpenOCD            
@@ -66,14 +66,7 @@ sudo udevadm trigger
 cd muttx_space
 git clone https://github.com/apache/incubator-nuttx.git nuttx
 git clone https://github.com/apache/incubator-nuttx-apps.git apps
-
-
-% 顶层 Makefile 文件中可用的构建目标的概述：
-all			% 默认目标，按已选择的输出格式构建 NuttX 可执行文件。
-clean		% 移除派生对象文件、静态库文件、可执行文件和临时文件，
-        	% 但保留配置和上下文的文件和目录。还保留 Make.dep 文件。
-distclean	% 除了完成 “clean” 的工作之外，还包括移除所有配置和上下文的文件。
-			% 本质是将目录结构还原为其原始的、未配置的状态。 
+git clone https://github.com/apache/incubator-nuttx-apps.git tools
 
 
 0 % 使用脚本自动配置目标板驱动程序
@@ -123,54 +116,55 @@ openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c init \
 ############################################################
 ### % codeblocks配置
 ############################################################
-1 % 选择调式器
+1 % 配置调式器
 Settings ->Debugger...
-		GDB/CDB debugger	[ Create Config ]
-							OpenOCD
+        GDB/CDB debugger    [ Create Config ]   OpenOCD
 ->OpenOCD
-		% OpenOCD执行路径
-		Executable path:	/home/freeysh/Downloads/Software/GCC/
-		                    gcc-arm-none-eabi-2018/bin/arm-none-eabi-gdb
+        % OpenOCD执行路径
+        Executable path:    /home/freeysh/Downloads/Software/GCC/
+                            gcc-arm-none-eabi-2018/bin/arm-none-eabi-gdb
 		                    
 2 % 编译器配置		                  
-Settings ->Compiler...
-		% 编译器选择
-		Selected compiler	[ GNU GCC Compiler for ARM ]	
-		->Toolchain executables
-			% 嵌入式编译器安装目录
-			Compiler's installation directory [ gcc-arm-none-eabi-2018/bin ]						->Program Files
-			C compiler:					arm-none-eabi-gcc
-			C++ compiler:				arm-none-eabi-g++
-			Linker for dynamic libs:	arm-none-eabi-g++
-			Linker for static libs:		arm-none-eabi-ar
-			Debugger:					OpenOCD
-			Make program:				make               
+Settings ->Compiler... ->Selected compiler [ GNU GCC Compiler for ARM ]
+% 嵌入式编译器安装目录	
+->Toolchain executables
+    Compiler's installation directory [ gcc-arm-none-eabi-2018/bin ] 
+->Program Files
+        C compiler:                 arm-none-eabi-gcc
+        C++ compiler:               arm-none-eabi-g++
+        Linker for dynamic libs:    arm-none-eabi-g++
+        Linker for static libs:     arm-none-eabi-ar
+        Debugger:                   OpenOCD
+        Make program:               make               
 		                  
 		                  
 3 % 创建工程
-Create new Project ->Empty project ->next
-		Project title:					nuttx
-		Folder to create priject in:	/home/nuttx_space
-		Project filename:				nuttx.cbp
-		Resulting filename:		        /home/nuttx_space/nuttx/nuttx.cbp          
+Create new Project ->Empty project 
 ->next
-		compiler:						GNU GCC compiler for ARM
-		Create "Debug" configuration:	all	                  
+        Project title:                  nuttx
+        Folder to create priject in:    /home/nuttx_space
+        Project filename:               nuttx.cbp
+        Resulting filename:             /home/nuttx_space/nuttx/nuttx.cbp          
+->next
+        compiler:                       GNU GCC compiler for ARM
+        Create "Debug" configuration:   all	                  
 		                  
 		                  
 4 % 配置工程
-Workspace ->nuttx ->properites...	                  
-->Project settings ->This is acustom Makefile % 使用自定义Makefile		                  
+Workspace ->nuttx ->properites...
+% 使用自定义Makefile文件 	                  
+->Project settings ->This is acustom Makefile
+% 调式器端口配置	                  
 ->Debugger ->all ->Remote connection
-	connection type: TCP
-	serial prot:		  	baud: 115200
-	IP address: 127.0.0.1 	port: 3333
-			                  
+        connection type: TCP
+        serial prot:		  	baud: 115200
+        IP address: 127.0.0.1 	port: 3333
+% 调式器命令参数			                  
 ->Debugger ->all ->Additonal GDB commands
-	Before connection:
-	After  connection: monitor reset init
-	                   load nuttx
-	                   b os_start		                  
+        Before connection:
+        After  connection:  monitor reset init
+                            load nuttx
+                            b os_start		                  
 		                  
 		                  
 5 % codeblocks加载文件
@@ -181,6 +175,9 @@ Workspace ->nuttx ->Add files recursively...
 6 % cd nuttx_space/nuttx
 make menuconfig
 Build Setup ->Debug Options --->Generate Debug Symbols[*]
+
+
+
 ############################################################
 ### % codeblocks调式
 ############################################################	
@@ -197,8 +194,9 @@ cd $HOME
 minicom
 
 
+
 ############################################################
-### 
+### % codeblocks IDE
 ############################################################
 % 配置终端
 Settings ->Environment... ->General settings
