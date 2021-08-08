@@ -123,25 +123,22 @@
                 1 1 1 0     (E)复用开漏输出(02MHz)
                 1 1 1 1     (F)复用开漏输出(50MHz)
 ____________________________________________________________________________ */
-#define m32_input_analog                        ((uint32_t)0x00000000)
-#define m32_input_floating                      ((uint32_t)0x00000004)
-#define m32_input_pull_up                       ((uint32_t)0x00000008)
-#define m32_input_pull_down                     ((uint32_t)0x00000008)
+INPUT
+INPUT_PULLUP
+INPUT_PULLDOWN
+INPUT_ANALOG
+INPUT_PULLUP_GPIO_ODR_0
 
-#define m32_push_pull_10mhz                     ((uint32_t)0x00000001)
-#define m32_push_pull_02mhz                     ((uint32_t)0x00000002)
-#define m32_push_pull_50mhz                     ((uint32_t)0x00000003)
-#define m32_open_drain_10mhz                    ((uint32_t)0x00000005)
-#define m32_open_drain_02mhz                    ((uint32_t)0x00000006)
-#define m32_open_drain_50mhz                    ((uint32_t)0x00000007)
-#define m32_af_push_pull_10mhz                  ((uint32_t)0x00000009)
-#define m32_af_push_pull_02mhz                  ((uint32_t)0x0000000A)
-#define m32_af_push_pull_50mhz                  ((uint32_t)0x0000000B)
-#define m32_af_open_drain_02mhz                 ((uint32_t)0x0000000E)
-#define m32_af_open_drain_50mhz                 ((uint32_t)0x0000000F)
+OUTPUT_PUSHPULL
+OUTPUT_OPENDRAIN
+ALTERNATE_PUSHPULL
+ALTERNATE_OPENDRAIN
+OUTPUT_SPEED_2MHZ
+OUTPUT_SPEED_10MHZ
+OUTPUT_SPEED_50MHZ
 
-
-
+config_gpio_mode();
+gpio_set(GPIOA, PIN_0);
 /******************************************************************************/
 /*                                                                            */
 /*                     AHB外设时钟使能寄存器___RCC_AHBENR                        */
@@ -200,4 +197,14 @@ ____________________________________________________________________________ */
 #define m_bkp_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_27;} while (0)
 #define m_pwr_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_28;} while (0)
 #define m_dac_clock_enable()      do {RCC->APB2ENR |= m32_set_bit_29;} while (0)
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                               GPIO                                         */
+/*                                                                            */
+/******************************************************************************/
+
+
+
 #endif

@@ -52,23 +52,25 @@ sudo apt install python-serial
 #include <mcs51/8051.h>
 void main()
 {
-  __bit status = 1;
-  while(1)
-  {
-    P0_0 = status;
-    status = !status;
-    delay(1000);
-  }
+    __bit status = 1;
+    while(1)
+    {
+        P0_0 = status;
+        status = !status;
+        delay(1000);
+    }
 }
 
 
 1 % 编译程序和生成hex文件
 sdcc main.c -o main.ihx
 
+
 2 % sdcc编译之后直接得到的是ihx文件，并不是51单片机需要的hex文件，
   % 所以需要使用packihx命令打包
   % packihx命令是在安装sdcc的时候附带安装的，所以可以直接使用。
 packihx main.ihx > main.hex
+
 
 3 % 烧写程序到单片机, 烧写的时候需要重新给单片机上电
 sudo stcflash --port /dev/ttyUSB0 main.hex
