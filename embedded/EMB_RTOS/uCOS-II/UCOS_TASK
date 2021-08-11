@@ -138,5 +138,6 @@ y    = OSUnMapTbl[ OSRdyGrp ];     % 获得优先级别的D5,D4,D3位,先找出�
 x    = OSUnMapTbl[ OSRdyTbl[ y ] ];% 获得优先级别的D2,D2,D0位,再从哪一组中找出是哪一位        
 prio = ( y<<3 ) + x;               % 获得就绪任务的优先级值
 
-
-
+或者: 获取就绪表中的最高优先级
+y = OSUnMapTbl[OSRdyGrp];
+OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);
