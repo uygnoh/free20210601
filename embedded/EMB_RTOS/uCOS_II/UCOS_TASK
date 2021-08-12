@@ -22,9 +22,87 @@ typedef struct os_tcb {
 
 
 
+############################################################
+### % OSInit 系统初始化函数
+############################################################
+void OSInit(void)
+{
+        // 钩子函数给应用开发人员留下一个口子
+        // 钩子函数用于留给应用开发人员编写特殊的处理程序
+        // 可以把应用开发人员开发的程序，钩到uCOS-II操作系统中
+        OSInitHookBegin();
+
+        // 初始化杂项函数
+        OS_InitMisc();
+
+        // 初始化就绪列表
+        OS_InitRdyList();
+
+        // 初始化TCB的空闲链表
+        OS_InitTCBList();
+        
+        // 初始化结束钩子函数
+        OSInitHookEnd();
+}
+
+void OS_InitMisc(void)
+{
+        % 
+        %
+        % 
+}
 
 
+void OS_InitRdyList(void)
+{
+        INT8U i;
+        
+        // 清除就绪组， 清除就绪表(8x8)
+        OSRdyGrp      = 0u;
+        for (i = 0u; i < OS_RDY_TBl_SIZE; i++) {
+                OSRdyTbl[i] = 0u;
+        }
+        
+        // 当前正在执行任务的优先级
+        OSPrioCur     = 0u;
+        // 在就绪列表中，当前已经处于就绪状态的最高优先级的任务
+        OSPrioHighRdy = 0u;
+        
+        // 最高就绪块中的TCB指针
+        OSTCBHighRdy  = (OS_TCB *)0;
+        // 当前正在运行正在运行任务的TCB指针
+        OSTCBCur      = (OS_TCB *)0;
+}
 
+void OS_InitTCBList(void)
+{
+        INT8U    ix;
+        INT8U    ix_next;
+        OS_TCB  *ptcb1;
+        OS_TCB  *ptcb2;
+        
+        // 清除系统所有TCB块
+        OS_MemClr((INT8U *)&OSTCBTbl[0],    sizeof(OSTCBTbl));
+        // 清除系统所有TCB优先级表
+        OS_MemClr((INT8U *)&OSTCBPrioTbl[0], sizeof(OSTCBPrioTbl));
+        for (ix = 0u; ix < (OS_MAX_TASKS + OS_N_SYS_TASKS - 1u); ix++) {
+                ix_next = ix + 1u;
+                ptcb1   = &OSTCBTbl[ix];
+                ptcb2   = &OSTCBTbl[ix_next];
+                ptcb1->OSTCBNext = ptcb2;
+        }
+        ptcb1           = &OSTCBTbl[ix];
+        pcb1->OSTCBNext = (OS_TCB *)0;
+        
+        OSTCBList       = (OS_TCB*)0;
+        OSTCBFreeList   = &OSTCBTbl[0];
+}
 
-
+void OS_MemClr(INT8U *pdest, INT16U size)
+{
+        while (size > 0u) {
+                *pdest++ = (INT8U)0;
+                size--;
+        }
+}
 
