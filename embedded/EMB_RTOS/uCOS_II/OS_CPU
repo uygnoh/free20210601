@@ -1,13 +1,32 @@
 ############################################################
+### % uCOS-II 临界区第3种方法实现 
+############################################################
+% 通过“cpu_sr”保存CPU的中断状态
+#if OS_CRITICAL_METHOD = 3u
+        OS_CPU_SR cpu_sr = 0u;
+#endif
+
+
+#define OS_ENTER_CRITICAL()     { cpu_sr = OS_CPU_SR_Save(); }
+#deifne OS_EXIT_CRITICAL()      { OS_CPU_SR_Restore(cpu_sr); }
+
+
+% ARM-CM3 ( C程序和汇编程序相互调用_参数传递规则 )
+% R0~R3 可以用于传递参数
+OS_CPU_SR_Save  % Set prio int mask to mask all (except faults)
+        MRS     R0, PRIMASK
+        CPSID   I
+        BX      LR
+
+OS_CPU_SR_Restore
+        MSR     PRIMASK, R0
+        BX      LR
+
+
+
+############################################################
 ### % ARM-CM ( OS_CPU_PendSVHandler )
 ############################################################
-
-OSPrioCur       % 
-OSPrioHighRdy   %
-OSTCBCur        %
-OSTCBHighRdy    %
-
-
 OS_CPU_PendSVHandler
         CPSID   I                               ; Prevent interruption during context switch
         MRS     R0, PSP                         ; PSP is process stack pointer
@@ -98,6 +117,7 @@ void OSStart(void)
 
 
 //它是一个静态函数，只能在文件内部被调用 
+//下面( uCOS-II 优先级判定表算法 ), 只能处理 0~63 个任务优先级
 static void OS_SchedNew(void)
 {
         INT8U y;
