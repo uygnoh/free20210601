@@ -58,16 +58,15 @@ OS_EXT  OS_TCB   OSTCBTbl[OS_MAX_TASKS + OS_N_SYS_TASKS];
 ############################################################
 ### % uCOS-II 中奇怪的对称代码
 ############################################################
-是为了防止长时间的关中断，用来提高任务的实时性
-同时让别的任务不能获得执行权
+// 是为了防止长时间的关中断，影响操作系统的实时性
+// 任务上锁是为了让别的任务不能获得执行权
+
 //调度器上锁
 if (OSLockNesting < 255) {
         OSLockNesting++;
 }
-OS_EXIT_CRITICAL();
-
+OS_EXIT_CRITICAL();     
 OS_Dummy();
-
 OS_ENTRY_CRITICAL();
 //调度器开锁
 if (OSLockNesting > 0) {
