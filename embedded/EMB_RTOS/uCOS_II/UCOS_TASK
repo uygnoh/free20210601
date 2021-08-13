@@ -361,7 +361,7 @@ INT8U OSTaskDel(INT8U prio)
                 OS_EXIT_CRITICAL();
                 return (OS_ERR_TASK_NOT_EXIST);
         }
-        // 判断是否为一个占位符的TCB指针
+        // 判断TCB指针是否分配给了进程提升优先级(Mutex PIP)
         if (ptcb == OS_TCB_RESERVED) {
                 OS_EXIT_CRITICAL();
                 return (OS_ERR_TASK_DEL);
@@ -450,7 +450,7 @@ INT8U OSTaskSuspend(INT8U prio)
         if (prio == PRIO_SELF) {
                 prio = OSTCBCur->OSTCBPrio;
                 self = OS_TRUE;
-        //判断是否是自己的优先级号码
+        // 判断是否是自己的优先级号码
         } else if (prio == OSTCBCur->OSTCBPrio) {
                 self = OS_TRUE;
         } else {
@@ -458,12 +458,107 @@ INT8U OSTaskSuspend(INT8U prio)
         }
         
         ptcb = OSTCBPrioTbl[prio];
+        // 判断要挂起的任务是否存在
         if (ptcb == (OS_TCB *)0) {
+                OS_EXIT_CRITICAL();
                 return (OS_ERR_TASK_SUSPEND_PRIO);
         }
+        // 判断TCB指针是否分配给了进程提升优先级(Mutex PIP)
+        if (ptcb == OS_TCB_RESERVED) {
+                OS_EXIT_CRITICAL();
+                return (OS_ERR_TASK_NOT_EXIST);
+                
+        }
+        
+        
+        // 删除要挂起任务的： 就绪组和就绪表对应的位清零
+        y           &= ptcb->OSTCBY;
+        OSRdyTbl[y] &= (OS_PRIO)~ptcb->OSTCBBitx;
+        if (OSRdyTbl[y] == 0u) {
+                OSRdyGrp &= (OS_PRIO)~ptcb->OSTCBBitY;
+        }
+        
+        // 设置要挂起的任务为： 挂起状态
+        ptcb->OSTCBStat |= OS_STAT_SUSPEND;
+        OS_EXIT_CRITICAL();
+        if (self == OS_TRUE) {
+                OS_Sched();
+        }
+        
+        return (OS_ERR_NONE);
 }
+
+
 
 ############################################################
 ### // uCOS-II 任务恢复 //
 ############################################################
+/*
+Description:
+        只有任务挂起了，才能使用这个函数，任务不能自己恢复自己
+returns:
+        OS_ERR_NONE                   任务恢复成功执行  
+        OS_ERR_PRIO_INVALID           要恢复任务优先级号码是非法的  
+        OS_ERR_TASK_RESUME_PRIO       要恢复任务的优先级不存在
+        OS_ERR_TASK_NOT_EXIST         if the task to assigne to a Muttex PIP
+        OS_ERR_TASK_NOT_SUSPENDED     if the task to resume has not been suspended
+*/
+INT8U OSTaskResume(INT8U prio)
+{
+        OS_TCB  *ptcb;
+        #if OS_CRITICAL_METHOD == 3u
+        OS_CPU_SR cpu_sr = 0u;
+        #endif
+        
+        if (prio >= OS_LOWEST_PRIO) {
+                return (OS_ERR_PRIO_INVALID);
+        }
+        OS_ENTER_CRITICAL();
+        ptcb = OSTCBPrioTbl[prio];
+        if (ptcb == (OS_TCB *)0) {
+                OS_EXIT_CRITICAL();
+                return (OS_ERR_TASK_RESUME_PRIO);
+        }
+        if (ptcb == OS_TCB_RESERVED) {
+                OS_EXIT_CRITICAL();
+                return (OS_ERR_TASK_NOT_EXIST);
+        }
+        
+        // 如果任务被挂起 //
+        if ((ptcb->OSTCBStat & OS_STAT_SUPEND) != OS_STAT_RDY) {
+                ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUPEND;
+                if (ptcb->OSTCBStat == OS_STAT_RDY) {
+                        if (ptcb->OSTCBDly == 0u) {
+                                OSRdyGrp               |= ptcb->OSTCBBitY;
+                                OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
+                                OS_EXIT_CRITICAL();
+                                if (OSRunning == OS_TRUE) {
+                                        OS_Sched();
+                                }
+                        } else {
+                                OS_EXIT_CRITICAL();
+                        }
+                } else {
+                        OS_EXIT_CRITICAL();
+                }
+                return (OS_ERR_NONE);
+        }
+        // 如果这个任务没有挂起 //
+        OS_EXIT_CRITICAL();
+        return (OS_ERR_TASK_NOT_SUSPENDED);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
