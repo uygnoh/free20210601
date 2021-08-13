@@ -547,18 +547,3 @@ INT8U OSTaskResume(INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TASK_NOT_SUSPENDED);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

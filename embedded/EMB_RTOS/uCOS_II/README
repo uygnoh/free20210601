@@ -8,8 +8,6 @@ Pending                 % 请求
 
 OSTCBFreeList           % 它指向TCB的_空闲链表(单链表结构)
 OSTCBList               % 它指向TCB的_就绪链表(双链表结构)
-
-
 OSLockNesting           % 调度器锁
 OSIntNesting            % 中断嵌套层数
 Mutex PIP               % 互斥信号量的进程提升优先级
@@ -20,19 +18,12 @@ Mutex PIP               % 互斥信号量的进程提升优先级
 ### % uCOS-II 全局变量
 ############################################################
 OS_EXT  INT32U  OSCtxSwCtr;     % Counter of number of context switches
-OS_EXT  INT8U   OSIntNesting;   % Interrupt nesting level
+OS_EXT  INT8U   OSIntNesting;   % 中断嵌套层数
 OS_EXT  INT8U   OSLockNesting;  % Multitasking lock nesting level
-
-
-// 当前任务优先级号码， 最高优先级任务的优先级号码
-OS_EXT  INT8U   OSPrioCur;      % Priority of current task
-OS_EXT  INT8U   OSPrioHighRdy;  % Priority of highest priority task
-// (INT8U)任务就绪组， (INT8U)任务就绪表
-x = OS_RDY_TBL_SIZE
-OS_EXT  OS_PRIO OSRdyGrp;       % Ready list group
-OS_EXT  OS_PRIO OSRdyTbl[x];    % Table of tasks which are ready to run
-
-
+OS_EXT  INT8U   OSPrioCur;      % 当前任务的优先级
+OS_EXT  INT8U   OSPrioHighRdy;  % 在就绪列表中最高的优先级任务
+OS_EXT  OS_PRIO OSRdyGrp;       % 就绪组
+OS_EXT  OS_PRIO OSRdyTbl[Y];    % 就绪表
 OS_EXT  OS_TCB  *OSTCBCur;      % Pointer to currently running TCB 
 OS_EXT  OS_TCB  *OSTCBFreeList; % Pointer to list of free TCBs 
 OS_EXT  OS_TCB  *OSTCBHighRdy;  % Pointer to highest priority TCB R-to-R
