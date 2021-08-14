@@ -1,5 +1,53 @@
 ############################################################
-### % uCOS-II 空闲链表和就绪链表
+### // uCOS-II os_core.c //
+############################################################
+INT8U  const  OSUnMapTbl[256] = {
+0u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x00 to 0x0F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x10 to 0x1F                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x20 to 0x2F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x30 to 0x3F                   */
+6u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x40 to 0x4F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x50 to 0x5F                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x60 to 0x6F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x70 to 0x7F                   */
+7u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x80 to 0x8F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x90 to 0x9F                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xA0 to 0xAF                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xB0 to 0xBF                   */
+6u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xC0 to 0xCF                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xD0 to 0xDF                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xE0 to 0xEF                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u  /* 0xF0 to 0xFF                   */
+};
+
+
+
+############################################################
+### // OS_TCB 数据结构 //
+############################################################
+typedef struct os_tcb {
+        OS_STK          *OSTCBStkPtr;   // Pointer to current top of stack
+        
+        stuct os_tcb    *OSTCBNext;     // Pointer to next TCB in the TCB list
+        stuct os_tcb    *OSTCBPrev;     // Pointer to prev TCB in the TCB list
+        
+        INT32U           OSTCBDly;      // Nbr ticks to delay task or, timeout waiting for event
+        INT8U            OSTCBStat;     // Task status
+        INT8U            OSTCBStatPend; // Task PEND status (任务请求状态)
+        INT8U            OSTCBPrio;     // Task priortity (0 == 最高)
+        
+        // 就绪表，就绪组
+        INT8U            OSTCBX;        //
+        INT8U            OSTCBY;        // 
+        OS_PRIO          OSTCBBitX;     // 
+        OS_PRIO          OSTCBBitY;     // 
+
+} OS_TCB;
+
+
+
+############################################################
+### // uCOS-II 空闲链表和就绪链表 //
 ############################################################
 uCOS-II将任务控制块分成两个链表来管理，这就是空闲任务链表和就绪任务链表
 其中，空闲任务链表包含了所有空闲的任务控制块。所谓空闲任务控制块，是指未
@@ -12,11 +60,11 @@ uCOS-II将任务控制块分成两个链表来管理，这就是空闲任务链�
 
 
 ############################################################
-###  % uCOS-II 任务优先级指针表
+### // uCOS-II 任务优先级指针表 //
 ############################################################
 任务优先级指针表也就是( 任务优先级指针数组 ), 在UCOS-II任务管理中频繁
 使用，代码中随处可见。它是用来获取某优先的任务的任务控制块地址。它的定义
-为：     % OS_LOWEST_PRIO为最低优先级的任务的优先级
+为：     // OS_LOWEST_PRIO为最低优先级的任务的优先级
         OS_TCB *OSTCBPrioTbl[OS_LOWEST_PRIO + 1]
 因为最低优先级的任务数值最大，而任务优先级从0开始的，所以其实
         [OS_LOWEST_PRIO + 1]就是任务的数量。
@@ -25,20 +73,20 @@ uCOS-II将任务控制块分成两个链表来管理，这就是空闲任务链�
 
 
 ############################################################
-### % uCOS-II 任务堆栈
+### // uCOS-II 任务堆栈 //
 ############################################################
 所谓堆栈，就是在存储器中按数据“后进先出LIFO(Last In First Out)”的原
 则组织的连续存储空间。因此，堆栈这种数据结构最大的特点就是最后进去的最先
 出来。 % 任务堆栈的定义
-        #define TASK_STK_SIZE           512
-        OS_STK TaskStk[OS_MAX_TASKS][TASK_STK_SIZE];
-% OS_MAX_TASKS是用户任务的数量
-% TASK_STK_SIZE是每个任务堆栈的大小，这里设置为512
+#define TASK_STK_SIZE           512
+OS_STK TaskStk[OS_MAX_TASKS][TASK_STK_SIZE];
+// OS_MAX_TASKS是用户任务的数量
+// TASK_STK_SIZE是每个任务堆栈的大小，这里设置为512
 
 
 
 ############################################################
-### % uCOS-II 任务就绪表和就绪组
+### //  uCOS-II 任务就绪表和就绪组 //
 ############################################################
 % 任务就绪表和任务就绪组定义
 __________________________________________________________
@@ -77,7 +125,7 @@ Y______|__________________________________
 7      | 63  62  61  60  59  58  57  56    
 _______|__________________________________         
     
--1 % 任务就绪表 OSRdyTbl[]
+-1 // 任务就绪表 OSRdyTbl[]
 uCOS-II在RAM中设立了一个记录表，系统中的每个任务都在这个表中占据一个位置，
 并用这个位置的状态(0 | 1)来表示任务是否处于就绪态。这个表就中任务就绪状态表。
 用一数据类型为INT8U的数组OSRdyTbl[]来充当任务就绪表。由于每个任务的就绪状
@@ -85,7 +133,7 @@ uCOS-II在RAM中设立了一个记录表，系统中的每个任务都在这个�
 ( 1 表示就绪， 0 表示非就绪 )
 
 
-0 % 任务就绪组 OSRdyGrp
+0 // 任务就绪组 OSRdyGrp
 为了便于就绪表的查找，uCOS-II又定义了个数据类型为INT8U的变量OSRdyGrp，
 并使该变量的每一个位都对应OSRdyTbl[]的一个任务组，即OSRdyTbl[]的一个
 元素。如果某任务组中有任务就绪，就在变量OSRdyGrp里把该任务组所对应的位
@@ -94,16 +142,23 @@ OSRdyGrp = (11100101)表示OSRdyTbl{0 组, 2 组, 5 组, 6 组, 7 组}
 任务组中有任务就绪。
 
 
+// 要让删除的任务处于非就绪态( 清除要删除任务的就绪表和就绪组 )
+OSRdyTbl[ptcb->OSTCBY] &= (OS_PRIO)~ptcb->OSTCBBitX;
+if (OSRdyTabl[ptcb->OSTCBY] == 0u) {
+        OSRdyGrp       &= (OS_PRIO)~ptcb->OSTCBBitY;
+}
+
+
 
 ############################################################
-### % uCOS-II 任务优先级判定表
+### // uCOS-II 任务优先级判定表 //
 ############################################################
-% uCOS-II 查找最高优先级就绪任务
-% OSUnMapTal[ ]为什么能实现这个效果，这就是这里的操作系统最巧妙之处了
-y    = OSUnMapTbl[ OSRdyGrp ];     % 获得优先级别的D5,D4,D3位,先找出是哪一组
-x    = OSUnMapTbl[ OSRdyTbl[ y ] ];% 获得优先级别的D2,D2,D0位,再从哪一组中找出是哪一位        
-prio = ( y<<3 ) + x;               % 获得就绪任务的优先级值
-% 或者: 获取就绪表中的最高优先级
+// uCOS-II 查找最高优先级的就绪任务TCB
+// OSUnMapTal[ ]为什么能实现这个效果，这就是这里的操作系统最巧妙之处了
+y    = OSUnMapTbl[ OSRdyGrp ];     // 获得优先级别的D5,D4,D3位,先找出是哪一组
+x    = OSUnMapTbl[ OSRdyTbl[ y ] ];// 获得优先级别的D2,D2,D0位,再从哪一组中找出是哪一位        
+prio = ( y<<3 ) + x;               // 获得就绪任务的优先级值
+// 或者: 获取就绪表中的最高优先级
 y = OSUnMapTbl[OSRdyGrp];
 OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);
 

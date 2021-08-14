@@ -1,29 +1,5 @@
 ############################################################
-### // OS_TCB 数据结构
-############################################################
-typedef struct os_tcb {
-        OS_STK          *OSTCBStkPtr;   // Pointer to current top of stack
-        
-        stuct os_tcb    *OSTCBNext;     // Pointer to next TCB in the TCB list
-        stuct os_tcb    *OSTCBPrev;     // Pointer to prev TCB in the TCB list
-        
-        INT32U           OSTCBDly;      // Nbr ticks to delay task or, timeout waiting for event
-        INT8U            OSTCBStat;     // Task status
-        INT8U            OSTCBStatPend; // Task PEND status (任务请求状态)
-        INT8U            OSTCBPrio;     // Task priortity (0 == 最高)
-        
-        // 就绪表，就绪组
-        INT8U            OSTCBX;        //
-        INT8U            OSTCBY;        // 
-        OS_PRIO          OSTCBBitX;     // 
-        OS_PRIO          OSTCBBitY;     // 
-
-} OS_TCB;
-
-
-
-############################################################
-### // OSInit 系统初始化函数
+### // OSInit() 系统初始化函数 //
 ############################################################
 void OSInit(void)
 {
@@ -117,7 +93,7 @@ void OS_MemClr(INT8U *pdest, INT16U size)
 
 
 ############################################################
-### // OS_TCBInit
+### // OS_TCBInit() 系统任务控制块初始化 //
 ############################################################
 INT8U OS_TCBInit(
                 INT8U    prio,          //任务的优先级
@@ -203,7 +179,7 @@ INT8U OS_TCBInit(
 
 
 ############################################################
-### // 任务栈初始化 ARM-CM3
+### // ARM-CM3 任务栈初始化 //
 ### // 在任务第一次初始化的时候模拟CPU保存栈帧的顺序
 ############################################################
 OS_STK *OSTaskStkInit(
@@ -245,10 +221,13 @@ OS_STK *OSTaskStkInit(
 ############################################################
 ### // uCOS-II 创建任务 //
 ############################################################
-// 创建任务可以在uCOS-II启动时创建任务，也可以是被一个正在运行的任务创建
-// 一个任务不可以在中断服务程序(ISR)中创建!!!
-// 每一个任务都被分配一个唯一的优先级号!!!
-// 优先级号码越低，优先级越高!!!
+/*
+ 创建任务可以在uCOS-II启动时创建任务，也可以是被一个正在运行的任务创建
+        一个任务不可以在中断服务程序(ISR)中创建!!!
+        每一个任务都被分配一个唯一的优先级号!!!
+        优先级号码越低，优先级越高!!!
+*/
+
 INT8U OSTaskCreate(void   (*task)(void *p_arg),
                    void   *p_arg;
                    OS_STK *ptos,
@@ -329,8 +308,6 @@ Notes   :
            因为任务删除自身，再也不会被任务调度了，它回不来了，但是这个
            任务后面还有一部分代码没有被执行，那么任务就不能删除干净了。
 */
-
-
 
 INT8U OSTaskDel(INT8U prio)
 {
@@ -429,6 +406,7 @@ Note:
         你使用这个OSTaskSuspend函数要特别的小心， 如果你挂起的任务在等待事件
         (例如：消息，信号量。。。)， 即使你等待的事件到了，它也会阻止它运行。
 */
+
 INT8U OSTaskSuspend(INT8U prio)
 {
         BOOLEAN         self;
@@ -503,6 +481,7 @@ returns:
         OS_ERR_TASK_NOT_EXIST         if the task to assigne to a Muttex PIP
         OS_ERR_TASK_NOT_SUSPENDED     if the task to resume has not been suspended
 */
+
 INT8U OSTaskResume(INT8U prio)
 {
         OS_TCB  *ptcb;
@@ -529,6 +508,7 @@ INT8U OSTaskResume(INT8U prio)
                 ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_SUPEND;
                 if (ptcb->OSTCBStat == OS_STAT_RDY) {
                         if (ptcb->OSTCBDly == 0u) {
+                        //设置就绪组，就绪表，使任务处于就绪状态
                                 OSRdyGrp               |= ptcb->OSTCBBitY;
                                 OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
                                 OS_EXIT_CRITICAL();
@@ -547,3 +527,50 @@ INT8U OSTaskResume(INT8U prio)
         OS_EXIT_CRITICAL();
         return (OS_ERR_TASK_NOT_SUSPENDED);
 }
+
+
+
+############################################################
+### // OSStart() 系统启动 //
+############################################################
+/*
+Description:
+        这个函数用于启动多任务进程，助于管理uCOS-II创建的任务
+        在调用OSStart()函数之前，必须先调用OSInit()函数
+        你至少创建一个任务
+Note:
+        OSStartHighRdy() 必须要：
+        1) Call OSTaskSwHook()
+        2) Set OSrunning to OS_TRUC.
+        3) Load the context of the task pointed to by OSTCBHighRdy.
+        4) Execte the task
+*/
+
+void OSStart(void)
+{
+        if (OSRunning == OS_FALSE) {
+                //Find highest priority's task priority number
+                OS_SchedNew();
+                OSPrioCur = OSPrioHighRdy;
+                //Point to highest priority task ready to run
+                OSTCBHihgRdy = OSTCBPrioTbl[OSPrioHighRdy];
+                OSTCBCur = OSTCBHighRdy;
+                //Execute target specific code to start task
+                OSStartHighRdy();
+        }
+}
+
+//查找uCOS-II系统当前就绪表中那个优先级最高， 返回那个最高优先级的号码
+//它是一个静态函数，只能在文件内部被调用（你的应用程序不应该调用它！！！）
+//下面用的( uCOS-II 优先级判定表算法 ), 只能支持 0~63 个任务优先级
+static void OS_SchedNew(void)
+{
+        INT8U y;
+        // 1) 以就绪组中的内容为索引，去查“y”值
+        y             = OSUnMapTbl[OSRdyGrp];
+        // 2) {【然后以“y”值为索引，去把就绪表中的那一行那过来】
+        //     , 以此作为索引查OSUnMapTbl[x].} + (y<<3) 
+        OSPrioHighRdy = (INT8U)((y << 3u) + OSUnMapTbl[OSRdyTbl[y])
+}
+// % uCOS-II 优先级判定表数据结构
+INT8U const OSUnMapTbl[256] = {};
