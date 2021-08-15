@@ -34,12 +34,13 @@ void OS_InitMisc(void)
         OSIdleCtr       = 0u;   // 空闲任务计数器
 }
 
-// 初始化(就绪表, 就绪组)
+
+// 初始化(就绪表, 就绪组， 任务优先级， 任务优先级指针)
 void OS_InitRdyList(void)
 {
         INT8U i;
         
-        // 清除就绪组， 清除就绪表(8x8)
+        // 清除就绪组， 清除就绪表
         OSRdyGrp      = 0u;
         for (i = 0u; i < OS_RDY_TBl_SIZE; i++) {
                 OSRdyTbl[i] = 0u;
@@ -55,6 +56,7 @@ void OS_InitRdyList(void)
         // 当前正在运行正在运行任务的TCB指针
         OSTCBCur      = (OS_TCB *)0;
 }
+
 
 // 初始化TCB的空闲链表
 void OS_InitTCBList(void)
@@ -572,5 +574,3 @@ static void OS_SchedNew(void)
         //     , 以此作为索引查OSUnMapTbl[x].} + (y<<3) 
         OSPrioHighRdy = (INT8U)((y << 3u) + OSUnMapTbl[OSRdyTbl[y])
 }
-// % uCOS-II 优先级判定表数据结构
-INT8U const OSUnMapTbl[256] = {};

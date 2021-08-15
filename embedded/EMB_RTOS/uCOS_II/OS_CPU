@@ -45,7 +45,7 @@ OSIntCtSw
         
         
 ############################################################
-### % ARM-CM ( OS_CPU_PendSVHandler )
+### // ARM-CM ( OS_CPU_PendSVHandler ) //
 ############################################################
 /*
 ;       ARM-CM3 使用小端模式(低字节放在低地址，高字节放在高地址)
@@ -82,57 +82,68 @@ OSIntCtSw
 */
 
 OS_CPU_PendSVHandler
-        ；进入PendSV异常CPU自动保存( xPSR, PC, LR, R12, R3-R0 )
+; //进入PendSV异常前CPU自动保存( xPSR, PC, LR, R12, R3, R2, R1, R0 )
+; //___________________________________________________________
+
          
-        CPSID   I         ; 进入PendSV异常，先把中断关闭，准备上下文切换
-        MRS     R0, PSP   ; PSP is process stack pointer
-        ; 如果PSP寄存器为“0”，则跳转 (表示这是任务的第一次切换)
+        CPSID   I                  ; //进入PendSV异常，先把中断关闭，准备上下文切换
+        MRS     R0, PSP            ; //PSP is process stack pointer
+        
+        ; //如果PSP寄存器为“0”，则跳转 (表示这是任务的第一次切换)
+        ; //CBZ,先比较，结果为“0”，则跳转
         CBZ     R0, OS_CPU_PendSVHandler_nosave
         
-        SUBS    R0, R0, #0x20      ; R0 = R0 - 32
-        STM     R0, {R4-R11}       ; 手动保存R4-R11到进程堆栈
+        SUBS    R0, R0, #0x20      ; //R0 = (R0 - 32)
+        STM     R0, {R4-R11}       ; //手动保存R4-R11到进程堆栈
         
-                                   ; 把SP保存到当前任务栈栈顶的任务控制块    
-        LDR     R1, =OSTCBCur      ; OSTCBCur->OSTCBStkPtr = SP
+        LDR     R1, =OSTCBCur      ; //(OSTCBCur->OSTCBStkPtr) = PSP
         LDR     R1, [R1]
-        STR     R0, [R1]           ; R0 is SP of process beging switched out
+        STR     R0, [R1]           ; //R0 is SP of process beging switched out
 
 
-                           ; 在这个点整个寄存器的内容都会被保存到PSP栈中
-OS_CPU_PendSVHandler_nosave; 此时此刻上文已保存
+; //在这个点整个寄存器的内容都会被保存到当前任务的OSTCBCur->OSTCBStkPtr栈中
+; //更新当前任务栈顶指针，此时此刻上文已保存-----------------------------
 
- 
-        PUSH    {R14}              ; Save LR exc_return value
-        LDR     R0, =OSTaskSwHook  ; 进入用户钩子函数
-        BLX     R0
-        POP     {R14}              ; 恢复R14中的内容
+
+OS_CPU_PendSVHandler_nosave
+
+
+; //下面的部分进行下文环境的准备工作，并切换到系统最高优先级任务中
+; //--------------------------------------------------------------
+
+
+        PUSH    {R14}              ; //Save LR exc_return value
+        LDR     R0, =OSTaskSwHook  ; //进入用户钩子函数
+        BLX     R0                 ; //带链接寄存器的返回
+        POP     {R14}              ; //恢复R14中的内容
         
-        LDR     R0, =OSPrioCur     ; OSPrioCur = OSPrioHighRdy
+        LDR     R0, =OSPrioCur     ; //OSPrioCur = OSPrioHighRdy
         LDR     R1, =OSPrioHighRdy
         LDRB    R2, [R1]
         STRB    R2, [R0];
         
-        LDR     R0, =OSTCBCur      ; OSTCBCur = OSTCBHighRdy
+        LDR     R0, =OSTCBCur      ; //OSTCBCur = OSTCBHighRdy
         LDR     R1, =OSTCBHighRdy
         LDR     R2, [R1]
         STR     R2, [R0]
         
-        
-        ; 任务下文切换
+
         LDR     R0, [R2]     ; R0 is new process SP; PSP = OSTCBHighRdy->OSTCBStkPtr
         LDM     R0, {R4-R11} ; Restore r4-r11 form new process stack
-        ADDS    R0, R0, #0x20
+        ADDS    R0, R0, #0x20; // R0 = (R0 + 32)
         MSR     PSP, R0      ; Load PSP with new process SP
         ORR     LR, LR, #0x04; Ensure exception return uses process stack
         CPSIE   I
         BX      LR           ; Exception return will restore remaining context
-        
-        ; 进入任务处理程序，CPU自动恢复( xPSR, PC, LR, R12, R3-R0 )
+
+
+; //进入任务处理程序这前，CPU自动恢复( xPSR, PC, LR, R12, R3-R0 )
+; //___________________________________________________________
 
 
 
 ############################################################
-### % ARM-CM ( OSStartHighRdy )
+### // ARM-CM ( OSStartHighRdy ) //
 ############################################################
 ;Note:   
 ;        1) This function triggers pendSV exception (essentially, causes a 
