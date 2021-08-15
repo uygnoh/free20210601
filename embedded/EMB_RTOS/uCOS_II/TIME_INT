@@ -199,3 +199,131 @@ INT8U OSTimeDlyHMSM (
 
 
 
+############################################################
+### // OSTimeDlyResume() //
+############################################################
+// 可以强制让任务从阻塞态变成就绪态
+INT8U OSTimeDlyResume(INT8U prio)
+{
+        OS_TCB  *ptcb;
+        #if OS_CRITICAL_METHOD == 3u
+        OS_CPU_SR cpu_sr = 0u;
+        #endif
+        
+        //判断优先级是否合法，任务不能自己恢复自己
+        //prio=255 忽略
+        if (prio >= OS_LOWEST_PRIO) {
+                return (OS_ERR_PRIO_INVALID);
+        }
+        OS_ENTER_CRITICAL();
+        ptcb = OSTCBPrioTbl[prio];
+        //参数检查
+        if (ptcb == (OS_TCB *)0) {
+                OS_EXIT_CRITICAL();
+                return (OS_ERR_TASK_NOT_EXIST);
+        }
+        // #define OS_TCB_RESERVED ((OS_TCB *)1)
+        if (ptcb == OS_TCB_RESERVED) {
+                OS_EXIT_CRITICAL();
+                return (OS_ERR_TASK_NOT_EXIST);
+        }
+        if (ptcb->OSTCBDly == 0u) {
+                OS_EXIT_CRITICAL();
+                return (OS_ERR_TIME_NOT_DLY);
+        }
+        
+        ptcb->OSTCBDly = 0;             //Clear the time delay
+        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) != OS_STAT_RDY) {
+                ptcb->OSTCBStat         &= ~OS_STAT_PEND_ANY; //Yes, Clear status flag
+                ptcb->OSTCBStatPend      = OS_STAT_PEND_TO;   //Indicate PEND timeout
+        } else {
+                ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
+        }
+        //判断任务是否被挂起，下面是处理任务没有挂起的代码
+        if ((ptcb->OSTCBStat & OS_STAT_SUSPEND) == OS_STAT_RDY) { //Is task suspended?
+                OSRdyGrp               |= ptcb->OSTCBBitY;        //NO, Make ready
+                OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
+                OS_EXIT_CRITICAL();
+                OS_Sched();             //See if thid if new highest priority                       
+        } else {
+                OS_EXIT_CRITICAL();     //Task may be suspended
+        }
+        return (OS_ERR_NONE);
+}
+
+
+
+############################################################
+### // OSTimeTick() //
+############################################################
+
+void OSTimeTick(void)
+{
+        OS_TCB          *ptcb;
+        #if OS_TICK_STEP_EN > 0u
+        BOOLEAN         step;
+        #endif
+        
+        #if OS_CRITICAL_METHOD == 3u
+        OS_CPU_SR cpu_sr = 0;
+        #endif
+        
+        #if OS_TIME_TICK_HOOK_EN > 0u
+        OSTimeTickHook();
+        #endif
+        
+        #if OS_TIME_GET_SET_EN > 0u
+        OS_ENTER_CRITICAL();
+        OSTime++;
+        OS_EXIT_CRITICAL();
+        #endif
+        
+        if (OSRunning == OS_TRUE) {
+        #if OS_TICK_STEP_EN > 0
+                switch (OSTickStepState) {
+                case OS_TICK_STEP_DIS:
+                        step = OS_TRUE;
+                        break;
+                case OS_TICK_STEP_WAIT:
+                        step = OS_FALSE;
+                        break;
+                case OS_TICK_STEP_ONCE:
+                        step            = OS_TRUE;
+                        OSTickStepState = OS_TICK_STEP_WAIT;
+                        break;
+                default:
+                        step            = OS_TRUE
+                        OSTickStepState = OS_TICK_STEP_DIS;
+                        break;
+                }
+                if (step == OS_FALSE) {
+                        return;
+                }
+        #endif
+        
+                ptcb = OSTCBList;
+                while (ptcb->OSTCBPrio != OS_TASK_IDLE_PRIO) {
+                        OS_ENTER_CRITICAL();
+                        if (ptcb->OSTCBDly != 0) {
+                                ptcb->OSTCBDly--;
+                                if (ptcb->OSTCBDly == 0u) {
+                                
+                                        if ((ptcb->OSTCBStat & OS_STAT_PEND_ANY) != OS_STAT_RDY) {
+                                                ptcb->OSTCBStat &= (INT8U)~(INT8U)OS_STAT_PEND_ANY;
+                                                ptcb->OSTCBStatPend = OS_STAT_PEND_TO;
+                                        } else {
+                                                ptcb->OSTCBStatPend = OS_STAT_PEND_OK;
+                                        }
+                                        if ((ptcb->OSTCBStat &OS_SATA_SUSPEND) == OS_STAT_RDY) {
+                                                OSRdyGrp               |= ptcb->OSTCBBitY;
+                                                OSRdyTbl[ptcb->OSTCBY] |= ptcb->OSTCBBitX;
+                                                
+                                        }
+                                        
+                                }
+                        }
+                        ptcb = ptcb->OSTCBNext;
+                        OS_EXIT_CRITICAL();
+                }
+        }           
+}
