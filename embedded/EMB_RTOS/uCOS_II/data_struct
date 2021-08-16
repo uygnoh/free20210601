@@ -265,3 +265,19 @@ typedef struct OS_EVENT {
 #define OS_EVENT_TYPE_SEM       3u      //信号量
 #define OS_EVENT_TYPE_MUTEX     4u      //互斥信号量
 #define OS_EVENT_TYPE_FLAG      5u      //事件标志
+
+
+
+############################################################
+### // 信号量数据结构 //
+############################################################
+typedef struct os_sem_data {
+        INT16U  OSCnt;                          //信号量数量
+        OS_PRIO OSEvnetTbl[OS_EVENT_TBL_SIZE];  //事件就绪表
+        OS_PrIO OSEventGrp;                     //事件就绪组
+} OS_SEM_DATA;
+
+
+
+
+
