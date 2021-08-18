@@ -282,10 +282,10 @@ void OSTimeTick(void)
         #if OS_TICK_STEP_EN > 0
                 switch (OSTickStepState) {
                 case OS_TICK_STEP_DIS:
-                        step = OS_TRUE;
+                        step            = OS_TRUE;
                         break;
                 case OS_TICK_STEP_WAIT:
-                        step = OS_FALSE;
+                        step            = OS_FALSE;
                         break;
                 case OS_TICK_STEP_ONCE:
                         step            = OS_TRUE;

@@ -35,25 +35,31 @@ typedef struct os_tcb {
         OS_EVENT        *OSTCBEventPtr; //Pointer to event control block
         #endif
         
+        //Pointer to multiple event control blocks
         #if (OS_EVENT_EN) && (OS_EVENT_MULTI_EN) > 0u)
-        OS_EVENT        **OSTCBEventMultiPtr; //Pointer to multiple event control blocks
+        OS_EVENT        **OSTCBEventMultiPtr; 
         #endif
         
-        INT32U           OSTCBDly;      // Nbr ticks to delay task or, timeout waiting for event
+        // Nbr ticks to delay task or, timeout waiting for event
+        INT32U           OSTCBDly;      
         INT8U            OSTCBStat;     // Task status
         INT8U            OSTCBStatPend; // Task PEND status (任务请求状态)
         INT8U            OSTCBPrio;     // Task priortity (0 == 最高)
         
         // 任务就绪表，任务就绪组，数据结构
-        INT8U            OSTCBX;        //
-        INT8U            OSTCBY;        // 
-        OS_PRIO          OSTCBBitX;     // 
-        OS_PRIO          OSTCBBitY;     // 
+        INT8U            OSTCBX;        //列号，0~7
+        INT8U            OSTCBY;        //行号，0~7
+        OS_PRIO          OSTCBBitX;     //列位号 
+        OS_PRIO          OSTCBBitY;     //行位号
 
 } OS_TCB;
 
 
-// uCOS-II 任务状态---------------------------------------------
+
+
+############################################################
+### // uCOS-II 任务状态 //
+############################################################
 #define OS_STAT_RDY             0x00u   //Ready to run 就绪
 #define OS_STAT_SEM             0x01u   //Pending on semaphore
 #define OS_STAT_MBOX            0x02u   //Pending on mailbox
@@ -67,8 +73,6 @@ typedef struct os_tcb {
                                               OS_STAT_MUTEX | OS_STAT_FLAG)
 
 
-
-
 ############################################################
 ### // uCOS-II 空闲链表和就绪链表 //
 ############################################################
@@ -78,10 +82,10 @@ uCOS-II将任务控制块分成两个链表来管理，这就是空闲任务链�
 空闲任务块。就绪链表则是将所有的就绪任务拴在一起，如果有新的任务就绪，就
 将任务控制块从空闲链表中取出，加入到就绪链表中。
 1 % 任务空闲链表(OSTCBFreeList)使用单向链表
-OS_EXT OS_TCB           *OSTCBFreeList;         // Pointer to list of free TCBs
+OS_EXT OS_TCB           *OSTCBFreeList; // Pointer to list of free TCBs
 
 2 % 任务就绪链表(OSTCBList)使用双向链表
-OS_EXT OS_TCB           *OSTCBList              // Pointer to doubly linked list of TCBs
+OS_EXT OS_TCB           *OSTCBList      // Pointer to doubly linked list of TCBs
 
 
 
@@ -276,6 +280,52 @@ typedef struct os_sem_data {
         OS_PRIO OSEvnetTbl[OS_EVENT_TBL_SIZE];  //事件就绪表
         OS_PrIO OSEventGrp;                     //事件就绪组
 } OS_SEM_DATA;
+
+
+
+
+############################################################
+### // 事件标志控制块 //
+############################################################
+#if OS_FLAGS_NBITS == 8u
+typedef INT8U OS_FLAGS;
+#endif
+#if OS_FLAGS_NBITS == 16u
+typedef INT16U OS_FLAGS;
+#endif
+#if OS_FLAGS_NBITS == 32u
+typedef INT32U OS_FLAGS;
+#endif
+
+
+//事件标志组->1
+typedef struct os_flag_grp {            
+        INT8U           OSFlagType, //事件标志组类型
+        void          *OSFlagWaitList, //它指向事件标志节点--->2
+        OS_FLAGS        OSFlagFalgs,//8, 16, 32 bit flags
+        #if OS_FLAG_NAME_EN > 0u    //事件标志组名称
+        INT8U         *OSFlagName,
+        #endif
+} OS_FLAG_GRP;
+
+//事件标志节点->2
+typedef struct os_flag_node {           
+        void          *OSFlagNodeNext;   //指向下一个节点
+        void          *OSFlagNodePrev;   //指向上一个节点     
+        void          *OSFlsgNodeTCB;    //Pointer to TCB of waiting task
+        void          *OSFlagNodeFlagGrp;//它指向事件标志组--->1
+        OS_FLAGS        OSFlagNodeFlags;   //Event flag to wait on 
+        INT8U           OSFlagNodeWaitType;//Type of wait:( 等待类型 )
+                                                   //OS_FLAG_WAIT_AND
+                                                   //OS_FLAG_WAIT_ALL
+                                                   //OS_FLAG_WAIT_OR
+                                                   //OS_FLAG_WAIT_ANY
+} OS_FLAG_NODE;
+
+
+
+
+
 
 
 
