@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-##################
+
 import random
 import sys
 import os
@@ -11,7 +11,7 @@ print(name)
 
 
 ###########################################################
-### python3算术运算
+###             python3 算术运算
 ###########################################################
 print("5 +  2 = ", 5 +  2)
 print("5 -  2 = ", 5 -  2)
@@ -24,7 +24,7 @@ print("5 // 2 = ", 5 // 2)
 
 
 ###########################################################
-### python3格式输出
+###             python3 格式输出
 ###########################################################
 quote = "\"Always remember you are unique"
 multi_line_quote = ''' just
@@ -37,7 +37,7 @@ print("newlines")
 
 
 ###########################################################
-### python3列表
+###             python3 列表
 ###########################################################
 grocery_list = ['Juice', 'Tomatoes', 'Potatoes', 'Bananas']
 print('First Item:', grocery_list[0])
@@ -50,7 +50,7 @@ print((to_do_list[1][1]))
 
 
 ###########################################################
-### python3元组
+###             python3 元组
 ###########################################################
 # 元组中的元素值是不允许修改的，但我们可以对元组进行连接组合
 # 元组中的元素值是不允许删除的，但我们可以使用del语句来删除整个元组
@@ -62,7 +62,7 @@ print("tup2[1:5]: ", tup2[1:5])
 
 
 ###########################################################
-### python3字典
+###             python3 字典
 ###########################################################
 super_villains = {  'Key00'   : 'value11',
                     'Fiddler' : 'Issac Bowin',
@@ -78,22 +78,24 @@ print(super_villains['Pide P '])
 
 
 ###########################################################
-### python3条件判断
+###             python3 条件判断
 ###########################################################
-# if else elif == != > >= < <=
+
 age = 21
 if age > 16:
     print('You are old enough to drive')
 else:
     print('You are not old enough to drive')
-    
+
+  
 if age >= 21:
     print('You are old enough to drive a tactor traile')
 elif age >= 16:
     print('You are old enough to drive a car')
 else:
     print("You are not old enough to drive")
-    
+
+
 if ((age >= 1) and (age <= 18)):
     print("You get a birthday")
 elif ((age == 21) or (age >= 65)):
@@ -106,18 +108,21 @@ else:
     
 
 ###########################################################    
-### python3循环
+###             python3 循环
 ###########################################################
 for x in range(0, 10):
     print(x, ' ', end="")
 print()
-    
+
+
 grocery_list = ['Juice', 'Tomatoes', 'Potstoes', 'bananas']
 for y in grocery_list :
     print(y)
-    
+
+ 
 for x in [2,4,6,8,10]:
     print(x)    
+
     
 num_list = [[1,2,3], [10,20,30], [100, 200, 300]] 
 for x in range(0, 3):
@@ -145,7 +150,7 @@ while (i <= 20):
    
 
 ###########################################################    
-### python3函数
+###             python3 函数
 ###########################################################
 def addNumber(fNum, lNum):
     sumNum = fNum + lNum
@@ -157,7 +162,7 @@ print("sumNumber : ", addNumber(1, 2))
 
 
 ###########################################################
-### python3模块 
+###             python3 模块 
 ###########################################################
 pandas #科学计算， pip3 install pandas
 
