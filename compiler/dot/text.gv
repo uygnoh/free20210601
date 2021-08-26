@@ -1,6 +1,4 @@
-//dot -Tsvg text.gv -o text.svg
-
-
+/********** dot -Tsvg text.gv -o text.svg **********/
 
 /*
 digraph G {

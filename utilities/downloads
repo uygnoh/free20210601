@@ -1,8 +1,0 @@
-############################################################
-### you-get
-############################################################
-% 安装 pip3
-sudo apt-get install python3-pip python3-dev build-essential
-
-% 安装 you-get
-pip3 install you-get
