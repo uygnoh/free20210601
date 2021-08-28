@@ -1,0 +1,67 @@
+/*******************************************************************************
+                            Linux内核宏
+*******************************************************************************/
+// #include <linux/types.h>
+// #include <linux/stddef.h>
+// #include <linux/poison.h>
+#define LIST_POISON1    (NULL)
+#define LIST_POISON2    (NULL)
+
+
+//计算member在type中的位置
+// include/linux/stddef.h
+#define offsetof(TYPE, MEMBER)  (size_t)(&((TYPE*)0)->MEMBER)
+
+
+//根据member的地址取type的起始地址
+// include/linux/list.h
+#define list_entry(ptr, type, member)                           \
+        container_of(ptr, type, member)
+// include/linux/kernel.h
+#define container_of(ptr, type, member) ({                      \
+        const typeof(((type *)0)->member)*__mptr = (ptr);       \
+        (type *)((char *)__mptr - offsetof(type, member)); })
+
+
+// #include <linux/prefetch.h>
+#define prefetch(x) ((void)x)
+
+
+#define LIST_HEAD_INIT(name)    { &(name), &(name) }
+#define LIST_HEAD(name) \
+        struct list_head name = LIST_HEAD_INIT(name)
+
+
+
+
+
+
+
+/*******************************************************************************
+                            修改后的标准C语言宏      
+*******************************************************************************/
+#ifndef offsetof
+#define offsetof(TYPE, MEMBER)                  \
+(size_t)(&((TYPE*)0)->MEMBER)
+#endif
+
+#ifndef container_of
+#define container_of(ptr, type, member)         \
+((type *)((char *)ptr - offsetof(type, member)))
+#endif
+
+#define LIST_POISON1    (NULL)
+#define LIST_POISON2    (NULL)
+
+#define prefetch(x) ((void)x)
+
+#define LIST_HEAD_INIT(name)                    \
+{ &(name), &(name) }
+
+#define LIST_HEAD(name)                         \
+struct list_head name = LIST_HEAD_INIT(name)
+
+
+
+
+

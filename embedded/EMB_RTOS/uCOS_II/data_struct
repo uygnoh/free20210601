@@ -1,29 +1,5 @@
 ############################################################
-### // uCOS-II os_core.c 任务优先级判定表 //
-############################################################
-INT8U  const  OSUnMapTbl[256] = {
-0u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x00 to 0x0F                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x10 to 0x1F                   */
-5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x20 to 0x2F                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x30 to 0x3F                   */
-6u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x40 to 0x4F                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x50 to 0x5F                   */
-5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x60 to 0x6F                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x70 to 0x7F                   */
-7u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x80 to 0x8F                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x90 to 0x9F                   */
-5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xA0 to 0xAF                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xB0 to 0xBF                   */
-6u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xC0 to 0xCF                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xD0 to 0xDF                   */
-5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xE0 to 0xEF                   */
-4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u  /* 0xF0 to 0xFF                   */
-};
-
-
-
-############################################################
-### // 任务控制块数据结构 //
+###                 // 任务控制块 //
 ############################################################
 typedef struct os_tcb {
         OS_STK          *OSTCBStkPtr;   // Pointer to current top of stack
@@ -56,9 +32,8 @@ typedef struct os_tcb {
 
 
 
-
 ############################################################
-### // uCOS-II 任务状态 //
+###              // uCOS-II 任务状态 //
 ############################################################
 #define OS_STAT_RDY             0x00u   //Ready to run 就绪
 #define OS_STAT_SEM             0x01u   //Pending on semaphore
@@ -73,8 +48,9 @@ typedef struct os_tcb {
                                               OS_STAT_MUTEX | OS_STAT_FLAG)
 
 
+
 ############################################################
-### // uCOS-II 空闲链表和就绪链表 //
+###          // uCOS-II 空闲链表和就绪链表 //
 ############################################################
 uCOS-II将任务控制块分成两个链表来管理，这就是空闲任务链表和就绪任务链表
 其中，空闲任务链表包含了所有空闲的任务控制块。所谓空闲任务控制块，是指未
@@ -117,6 +93,103 @@ OS_EXT OS_TCB    *OSTCBHighRdy;
 
 
 ############################################################
+###      // EVENT CONTROL BLOCK 事件控制块 //
+############################################################
+#if OS_LOWEST_PRIO <= 63u
+typedef INT8U           OS_PRIO
+#else
+typedef INT16U          OS_PRIO
+#endif
+
+
+#if (OS_EVENT_EN) && (OS_MAX_EVENTS > 0u)
+typedef struct OS_EVENT {
+        INT8U    OSEventType; //用来表示事件控制块的类型
+        void    *OSEventPtr; //它是用来指向消息或队列的结构体
+        INT16U   OSEventCnt; //这个事件计数器是针对信号量的计数(对其它的事件不起作用)
+        
+        //事件就绪组，事件就绪表
+        OS_PRIO  OSEventGrp;
+        OS_PRIO  OSEventTbl[OS_EVENT_TBL_SIZE];
+
+        #if OS_EVENT_NAME_EN > 0u
+        INT8U    *OSEventName;
+        #endif
+} OS_EVENT;
+#endif
+
+
+1 // uCOS-II 事件类型 -----------------------------
+#define OS_EVENT_TYPE_UNUSED    0u      //没有使用
+#define OS_EVENT_TYPE_MBOX      1u      //消息邮箱
+#define OS_EVENT_TYPE_Q         2u      //消息队列
+#define OS_EVENT_TYPE_SEM       3u      //信号量
+#define OS_EVENT_TYPE_MUTEX     4u      //互斥信号量
+#define OS_EVENT_TYPE_FLAG      5u      //事件标志
+
+
+
+############################################################
+### // 信号量数据结构 //
+############################################################
+typedef struct os_sem_data {
+        INT16U  OSCnt;                          //信号量数量
+        OS_PRIO OSEvnetTbl[OS_EVENT_TBL_SIZE];  //事件就绪表
+        OS_PrIO OSEventGrp;                     //事件就绪组
+} OS_SEM_DATA;
+
+
+
+
+############################################################
+###                  // 事件标志控制块 //
+############################################################
+#if OS_FLAGS_NBITS == 8u
+        typedef INT8U OS_FLAGS;
+#endif
+
+#if OS_FLAGS_NBITS == 16u
+        typedef INT16U OS_FLAGS;
+#endif
+
+#if OS_FLAGS_NBITS == 32u
+        typedef INT32U OS_FLAGS;
+#endif
+
+
+//事件标志组->1
+typedef struct os_flag_grp {
+        //事件标志组类型, 它只有一个类型选项
+        //在此处它只有一个选项[ OS_EVENT_TYPE_FLAG ]    
+        INT8U           OSFlagType,
+        void          *OSFlagWaitList, //它指向事件标志节点--->2
+        OS_FLAGS        OSFlagFalgs,   //事件标志组类型
+        #if OS_FLAG_NAME_EN > 0u       //事件标志组名称
+        INT8U         *OSFlagName,
+        #endif
+} OS_FLAG_GRP;
+
+
+//事件标志节点->2
+typedef struct os_flag_node {           
+        void          *OSFlagNodeNext;   //指向下一个节点
+        void          *OSFlagNodePrev;   //指向上一个节点     
+        void          *OSFlsgNodeTCB;    //Pointer to TCB of waiting task
+        void          *OSFlagNodeFlagGrp;//它指向事件标志组--->1
+        OS_FLAGS        OSFlagNodeFlags; //事件标志节点类型
+        INT8U           OSFlagNodeWaitType;
+        //事件标志节点等待类型
+        //OS_FLAG_WAIT_AND
+        //OS_FLAG_WAIT_SET_ALL你所申请的那些“位”，全部都要置“1”
+        //OS_FLAG_WAIT_CLR_ALL你所申请的那些“位”，全部都要清“0”
+        //OS_FLAG_WAIT_OR
+        //OS_FLAG_WAIT_SET_ANY你所申请的那些“位”，只要有位置“1”
+        //OS_FLAG_WAIT_CLR_ANY你所申请的那些“位”，只要有位清“0”
+} OS_FLAG_NODE;
+
+
+
+############################################################
 ### // uCOS-II 任务堆栈 //
 ############################################################
 所谓堆栈，就是在存储器中按数据“后进先出LIFO(Last In First Out)”的原
@@ -130,6 +203,41 @@ OS_STK TaskStk[OS_MAX_TASKS][TASK_STK_SIZE];
 
 
 ############################################################
+### // uCOS-II os_core.c 任务优先级判定表 //
+############################################################
+INT8U  const  OSUnMapTbl[256] = {
+0u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x00 to 0x0F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x10 to 0x1F                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x20 to 0x2F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x30 to 0x3F                   */
+6u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x40 to 0x4F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x50 to 0x5F                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x60 to 0x6F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x70 to 0x7F                   */
+7u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x80 to 0x8F                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0x90 to 0x9F                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xA0 to 0xAF                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xB0 to 0xBF                   */
+6u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xC0 to 0xCF                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xD0 to 0xDF                   */
+5u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, /* 0xE0 to 0xEF                   */
+4u, 0u, 1u, 0u, 2u, 0u, 1u, 0u, 3u, 0u, 1u, 0u, 2u, 0u, 1u, 0u  /* 0xF0 to 0xFF                   */
+};
+_______________________________________________________________________________
+               // uCOS-II 查找系统最高任务的优先级判定算法 //
+_______________________________________________________________________________
+// uCOS-II 查找最高优先级的就绪任务TCB
+// OSUnMapTal[ ]为什么能实现这个效果，这就是这里的操作系统最巧妙之处了
+y    = OSUnMapTbl[ OSRdyGrp ];     // 获得优先级别的D5,D4,D3位,先找出是哪一组
+x    = OSUnMapTbl[ OSRdyTbl[ y ] ];// 获得优先级别的D2,D2,D0位,再从哪一组中找出是哪一位        
+prio = ( y<<3 ) + x;               // 获得就绪任务的优先级值
+// 或者: 获取就绪表中的最高优先级
+y = OSUnMapTbl[OSRdyGrp];
+OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);
+
+
+
+############################################################
 ### //  uCOS-II 任务就绪表和就绪组 //
 ############################################################
 % 任务就绪表和任务就绪组定义
@@ -138,8 +246,6 @@ typedef unsigned char INT8U;
 #define OS_RDY_TBL_SIZE         ((OS_LOWEST_PRIO) / 8 + 1)
 INT8U OSRdyTbl[OS_RDY_TBL_SIZE];        //任务就绪表
 INT8U OSRdyGrp;                         //任务就绪组
-
-
 __________________________________________________________
 内核在进行任务调度的时候，必须知道那个任务在运行，那个任务是就绪的最高优
 级的任务。实时任务调度的速度关键在于速度，要求无论系统运行情况如何，调度
@@ -190,7 +296,7 @@ OSRdyGrp = (11100101)表示OSRdyTbl{0 组, 2 组, 5 组, 6 组, 7 组}
 任务组中有任务就绪。
 
 
-1 // 要让任务处于就绪态( 设置任务的就绪表和就绪组相应的位为“1” ) //
+2 // 要让任务处于就绪态( 设置任务的就绪表和就绪组相应的位为“1” ) //
 /* 任务就绪掩码计算( 64位优先级只用到“6”位二进制数 )  */  
 #if OS_LOWEST_PRIO <= 63u
 // 高“3”位对应就绪表中的行 | 也对应(INT8U OSRdyGrp)就绪组中的“位号”
@@ -204,130 +310,8 @@ ptcb->OSTCBBitY    = (OS_PRIO)(1uL << ptcb->OSTCBY);
 ptcb->OSTCBBitX    = (OS_PRIO)(1uL << ptcb->OSTCBX);
 
 
-2 // 要让删除的任务处于非就绪态( 清除要删除任务的就绪表和就绪组 ) //
+3 // 要让删除的任务处于非就绪态( 清除要删除任务的就绪表和就绪组 ) //
 OSRdyTbl[ptcb->OSTCBY] &= (OS_PRIO)~ptcb->OSTCBBitX;
 if (OSRdyTabl[ptcb->OSTCBY] == 0u) {
         OSRdyGrp       &= (OS_PRIO)~ptcb->OSTCBBitY;
 }
-
-
-
-############################################################
-### // uCOS-II 查找系统最高任务的优先级判定算法 //
-############################################################
-// uCOS-II 查找最高优先级的就绪任务TCB
-// OSUnMapTal[ ]为什么能实现这个效果，这就是这里的操作系统最巧妙之处了
-y    = OSUnMapTbl[ OSRdyGrp ];     // 获得优先级别的D5,D4,D3位,先找出是哪一组
-x    = OSUnMapTbl[ OSRdyTbl[ y ] ];// 获得优先级别的D2,D2,D0位,再从哪一组中找出是哪一位        
-prio = ( y<<3 ) + x;               // 获得就绪任务的优先级值
-// 或者: 获取就绪表中的最高优先级
-y = OSUnMapTbl[OSRdyGrp];
-OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);
-
-
-
-############################################################
-### // 中断管理核心思想 //
-############################################################
-如果正在运行的任务没有关闭中断，在中断到来的时候，操作系统响应中断，进入
-中断服务程序。这时候任务的运行环境没有保存，因此需要将任务的运行环境保存
-这时任务由于中断的到来而进入挂起态。
-
-
-
-############################################################
-### // EVENT CONTROL BLOCK 事件控制块 //
-############################################################
-#if OS_LOWEST_PRIO <= 63u
-typedef INT8U           OS_PRIO
-#else
-typedef INT16U          OS_PRIO
-#endif
-
-
-#if (OS_EVENT_EN) && (OS_MAX_EVENTS > 0u)
-typedef struct OS_EVENT {
-        INT8U    OSEventType; //用来表示事件控制块的类型
-        void    *OSEventPtr; //它是用来指向消息或队列的结构体
-        INT16U   OSEventCnt; //这个事件计数器是针对信号量的计数(对其它的事件不起作用)
-        
-        //事件就绪组，事件就绪表
-        OS_PRIO  OSEventGrp;
-        OS_PRIO  OSEventTbl[OS_EVENT_TBL_SIZE];
-
-        #if OS_EVENT_NAME_EN > 0u
-        INT8U    *OSEventName;
-        #endif
-} OS_EVENT;
-#endif
-
-
-1 // uCOS-II 事件类型 -----------------------------
-#define OS_EVENT_TYPE_UNUSED    0u      //没有使用
-#define OS_EVENT_TYPE_MBOX      1u      //消息邮箱
-#define OS_EVENT_TYPE_Q         2u      //消息队列
-#define OS_EVENT_TYPE_SEM       3u      //信号量
-#define OS_EVENT_TYPE_MUTEX     4u      //互斥信号量
-#define OS_EVENT_TYPE_FLAG      5u      //事件标志
-
-
-
-############################################################
-### // 信号量数据结构 //
-############################################################
-typedef struct os_sem_data {
-        INT16U  OSCnt;                          //信号量数量
-        OS_PRIO OSEvnetTbl[OS_EVENT_TBL_SIZE];  //事件就绪表
-        OS_PrIO OSEventGrp;                     //事件就绪组
-} OS_SEM_DATA;
-
-
-
-
-############################################################
-### // 事件标志控制块 //
-############################################################
-#if OS_FLAGS_NBITS == 8u
-typedef INT8U OS_FLAGS;
-#endif
-#if OS_FLAGS_NBITS == 16u
-typedef INT16U OS_FLAGS;
-#endif
-#if OS_FLAGS_NBITS == 32u
-typedef INT32U OS_FLAGS;
-#endif
-
-
-//事件标志组->1
-typedef struct os_flag_grp {            
-        INT8U           OSFlagType, //事件标志组类型
-        void          *OSFlagWaitList, //它指向事件标志节点--->2
-        OS_FLAGS        OSFlagFalgs,//8, 16, 32 bit flags
-        #if OS_FLAG_NAME_EN > 0u    //事件标志组名称
-        INT8U         *OSFlagName,
-        #endif
-} OS_FLAG_GRP;
-
-//事件标志节点->2
-typedef struct os_flag_node {           
-        void          *OSFlagNodeNext;   //指向下一个节点
-        void          *OSFlagNodePrev;   //指向上一个节点     
-        void          *OSFlsgNodeTCB;    //Pointer to TCB of waiting task
-        void          *OSFlagNodeFlagGrp;//它指向事件标志组--->1
-        OS_FLAGS        OSFlagNodeFlags;   //Event flag to wait on 
-        INT8U           OSFlagNodeWaitType;//Type of wait:( 等待类型 )
-                                                   //OS_FLAG_WAIT_AND
-                                                   //OS_FLAG_WAIT_ALL
-                                                   //OS_FLAG_WAIT_OR
-                                                   //OS_FLAG_WAIT_ANY
-} OS_FLAG_NODE;
-
-
-
-
-
-
-
-
-
-
