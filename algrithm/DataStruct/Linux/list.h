@@ -1,11 +1,13 @@
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER)                  \
-(size_t)(&((TYPE*)0)->MEMBER)
+        (size_t)(&((TYPE*)0)->MEMBER)
 #endif
 
+#define list_entry(ptr, type, member)           \
+        container_of(ptr, type, member)
 #ifndef container_of
 #define container_of(ptr, type, member)         \
-((type *)((char *)ptr - offsetof(type, member)))
+        ((type *)((char *)ptr - offsetof(type, member)))
 #endif
 
 #define LIST_POISON1    (NULL)
