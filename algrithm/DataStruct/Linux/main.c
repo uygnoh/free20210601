@@ -1,7 +1,9 @@
+//kernel/include/linux/list.h
 #include <stdio.h>
 #include <stdlib.h>
 #include "list.h"
 
+//第1种方法
 void list_demo_1(void)
 {
         struct node {
@@ -44,11 +46,12 @@ void list_demo_1(void)
         printf("Delete end ...\n");
 }
 
+//第2种方法
 void list_demo_2(void)
 {       
         struct node {
-                int value;      //互换位置
-                struct list_head head; 
+                int value;              //互换位置
+                struct list_head head;  //互换位置
         };
         
         int i;
@@ -93,6 +96,8 @@ int main(void)
 {
         //list_demo_1();
         list_demo_2();
+        struct list_head header = {&header, &header};
+        //LIST_HEAD(header);
         return 0;
 }
 
