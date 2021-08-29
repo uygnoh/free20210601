@@ -41,7 +41,7 @@ lw t0, 8(s1)            //(把“s1寄存器内容 + 8”)以此为地址，读�
 sw t0, 0(s1)            //把“t0寄存器内容”写入(“s1寄存器内容 + 0”)的地址中
 
 
-
+___________________________________________________________
 // "LUI(Load Upper Immediate)"指令采用U-type,用于构造20立即数
 lui x5, 0x12345     % x5 = (0x12345000)
 imm[31:12]      rd[11:7]        opcode[6:0]
@@ -71,6 +71,7 @@ imm[31:12]      rd[11:7]        opcode[6:0]
 // 具体编程时给出需要加载的label，编译器会根据实际情况选用
 // AUIPC和其它指令自动生成正确的指令序列。
 // 常用于加载一个函数或者变量的地址。
+___________________________________________________________
 
 
 
@@ -181,31 +182,31 @@ EXIT:
 *******************************************************************************/
 CSRRW(Atomic Read/Write CSR)
 CSRRW RD, CSR, RS1
-crrw t6, mscratch, t6       % t6 = mscratch; mscratch = t6
+crrw t6, mscratch, t6       // t6 = mscratch; mscratch = t6
 ___________________________________________________________
 31:0            19:15       14:12   11:7    6:0
 csr             rs1         funct3  rd     opcode
 12              5           3       5       7
 ___________________________________________________________
 source/dest     source      CSRRW   dest    SYSTEM
-1 % CSRRW先读出“CSR”中的值，将其按“XLEN位”的宽度进行“零扩展(zero-extend)”
-  后写入“RD”；   然后将“RS1”中的值写入“CSR”。
-2 % 以上两步操作以“原子性(atomically)”方式完成
-3 % 如果“RD”是“x0”，则不对“CSR”执行读的操作。
-4 % 伪指令+++++++++++Base Instruction(Write CSR)
-  csrw csr, rs  <=> csrrw x0, csr, rs
-
-
+1 // CSRRW先读出“CSR”中的值，将其按“XLEN位”的宽度进行
+  // “零扩展(zero-extend)”,后写入“RD”； 然后将“RS1”中的值写入“CSR”。
+2 // 以上两步操作以“原子性(atomically)”方式完成
+3 // 如果“RD”是“x0”，则不对“CSR”执行读的操作。
+4 // 伪指令         |   基本指令(写 CSR)
+     csrw csr, rs  |   csrrw x0, csr, rs
+                   |
+                   |
 CSRRS(Atomic Read and Set Bits in CSR)
 CSRRS RD, CSR, RS1  
-csrrs x5, mie, x6           % x5 = mie; mie |= x6;
-1 % CSRRS先读出“CSR”中的值，将其按“XLEN位”的宽度进行“零扩展(zero-extend)”
-  后写入“RD”； 然后逐个检查“RS1”中的值，如果某一位为“1”则对“CSR”的对应位
-  置“1”，否则保持不变。
-2 % 2 % 以上两步操作以“原子性(atomically)”方式完成
-3 % 伪指令++++++++++Base Instruction(Read CSR)
-  csrr rd, csr <=> csrrs rd, csr, x0
-
+csrrs x5, mie, x6           // x5 = mie; mie |= x6;
+1 // CSRRS先读出“CSR”中的值，将其按“XLEN位”的宽度进行
+  // “零扩展(zero-extend)”后写入“RD”； 然后逐个检查“RS1”中的值，
+  // 如果某一位为“1”则对“CSR”的对应位置“1”，否则保持不变。
+2 // 以上两步操作以“原子性(atomically)”方式完成
+3 //伪指令          |    基本指令(读 CSR)
+  csrr rd, csr     |    csrrs rd, csr, x0
+                   |
 
 
 
