@@ -244,16 +244,3 @@ List Delete(int i, List PtrL)
         return PtrL;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
