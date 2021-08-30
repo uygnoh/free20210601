@@ -1,0 +1,410 @@
+/*******************************************************************************
+                          ATmega328P(ROM-32KB, 8位单片机)
+*******************************************************************************/
+#define F_CPU                   (1000000UL)     //1MHz
+#include <avr/io.h>
+#include <utill/delay.h>
+
+
+#include <iom328p.h>
+Atmel Studio 7
+
+
+
+/*******************************************************************************
+                               I/O Registers
+*******************************************************************************/
+//x = B, C, D
+___________________________________________________________
+1 DDRx          //数据方向寄存器(data direction)
+2 PORTx         //数据输出寄存器(output)
+3 PINx          //数据输入寄存器(input)
+
+
+//输出模式(Output Mode)
+___________________________________________________________
+1 DDRx = 1                           //输出模式，DDRx设置为“1”
+2 PINx is NOT used                   //PINx没有使用
+3 PORTx contains the output voltages //写入(0 或 1)到PORTx寄存器
+  |______________________|
+  |     1 logic high     |
+  |     0 logic low      |
+  |______________________|
+//例程, 高4位亮，低4位灭
+DDRD    = 0b11111111;
+PORTD   = 0b11110000;
+
+
+
+//输入模式, 无上拉(Input Mode without Pull-up)
+___________________________________________________________
+1 DDRx = 0                              //输入模式，DDRx设置为“0”
+2 PINx contains the input logic signal  //输入模式，读取PINx寄存器
+  |______________________|
+  |   1   logic high     |
+  |______________________|
+  |   0   logic low      |
+  |______________________|
+3 PORTx is NOT used (if not considering pull-up)
+
+
+//输入模式, 有上拉(Input Mode with Pull-up)
+___________________________________________________________
+1 DDRx = 0                              //输入模式，DDRx设置为“0”
+2 PINx contains the input logic signal  //输入模式，读取PINx寄存器
+  |______________________|
+  |   1   logic high     |
+  |______________________|
+  |   0   logic low      |
+  |______________________|
+3 PORTx determines if pull-up           //配置为“1”，打开上拉电阻
+  resistors are connected or not        //配置为“0”，关闭上拉电阻
+  |______________________|
+  |   1   pull-up ON     |
+  |______________________|
+  |   0   pull-up OFF    |
+  |______________________|
+
+
+
+/*******************************************************************************
+                                Clock System
+*******************************************************************************/
+1 //时钟源选择(Clock Source Options)
+//时钟源选择使用“fuse”位(Clock source selected by fuse bits CKSEL3:CLSEL0)
+//Device Clocking Option                 CKSEL3...0
+Low Power Crystal Oscillator             1111 - 1000
+Full Swing Crystal Oscillator            0111 - 0110
+Low Frequency Crystal Oscillator         0101 - 0100
+Internal 128KHz RC Oscillator                   0011
+Calibrated Internal RC OScillator(8MHz)         0010
+External Clock                                  0000
+Reserved                                        0001
+//Setting Fuse in AVRDUDESS 设置容丝位
+//Fuse Low
+____________________________________________________________________        
+| CKDIV8 | CKOUT | SUT1 | SUT0 | CKSEL3 | CKSEL2 | CKSEL1 | CKSEL0 |
+|________|_______|______|______|________|________|________|________|
+          
+          
+//Fuse High
+__________________________________________________________________________
+| RSTDISBL | DWEN | SPIEN | WDTON | EESAVE | BOOTSZ1 | BOOTSZ0 | BOOTRST |
+|__________|______|_______|_______|________|_________|_________|_________|
+
+
+//Fuse Ext.
+_________________________________________________________        
+| - | - | - | - | - |BODLEVEL2 | BODLEVEL1  | BODLEVEL0 |
+|___|___|___|___|___|__________|____________|___________|
+          
+
+          
+2 // CLKPR 预分频器选择(Prescaler Options)   
+__________________________________________________________      
+| CLKPCE | - | - | - | CLKPS3 | CLKPS2 | CLKPS1 | CLKPS0 |        
+|________|___|___|___|________|________|________|________|
+// CLKPR = (1 << CLKPCE)  //打开保险
+// CLKPS3   CLKPS3   CLKPS3   CLKPS3    Clock Division Factor
+      0        0        0        0               1
+      0        0        0        1               2
+      0        0        1        0               4
+      0        0        1        1               8
+      0        1        0        0               16
+   
+
+
+/*******************************************************************************
+                                Timer
+*******************************************************************************/
+//T0—CNT寄存器
+TCNT0(Timer/counter register)
+
+
+//T0控制寄存器
+TCCR0A/B(Timer/counter control register) 
+//TCCR0A
+_____________________________________________________________
+| COM0A1 | COM0A0 | COM0B1 | COM0B0 | - | - | WGM01 | WGM00 |
+|________|________|________|________|___|___|_______|_______|
+//TCCR0B
+_____________________________________________________________
+| FOC0A | FOC0B | - | - |  WGM02  |  CS02  |  CS01  |  CS00 |
+|_______|_______|___|___|_________|________|________|_______|
+1 //时钟选择(Clock Selector)
+  CS02  CS01  CS00      Comment
+    0     0     0       //No clock source(Timer/counter stopped)
+    0     0     1       //clk (No prescaling)
+    0     1     0       //clk / 8
+    0     1     1       //clk / 64
+    1     0     0       //clk / 256
+    1     0     1       //clk / 1024
+    1     1     0       //External clock source on T0 pin; clock on falling dege
+    1     1     1       //External clock source on T0 pin; clock on rising dege
+____________________________________________________________________________
+ WGM02  WGM01  WGM00    Comment
+    0     0     0       //Normal
+    0     0     1       //PWM, phase correct
+    0     1     0       //CTC ( clear timer on compare match )
+    0     1     1       //Fast PWM
+    1     0     0       //Reserved
+    1     0     1       //PWM, phase correct
+    1     1     0       //Reserved
+    1     1     1       //Fast PWM
+____________________________________________________________________________
+while (1) {
+        TCNT0 = 0xF2;                           //1: n=14
+        TCCR0A = 0x00;                          //2: normal mode, init clock
+        TCCR0B = 0x01;                          //3: start Timer0
+        while ((TIFR0 & (0b00000001)) == 0);    //4: wait for flag TOV0=1
+        TCCR0B = 0x00;                          //5: stop Timer0
+        TIFR0 = (1 << TOV0);                    //6: clear TOV0
+}
+____________________________________________________________________________
+
+
+//T0溢出标志寄存器
+TOV0(Timer overflow flag)
+//TIFR0, TOV0由软件清零
+____________________________________________
+| - | - | - | - | - | OCF0B | OCF0A | TOV0 |
+|___|___|___|___|___|_______|_______|______|
+
+
+
+// Time Delay Produced by Timer
+____________________________________________________________________________
+
+1. Machine cycles:       n
+2. Prescalar factor:     p
+3. Machine cycle period: T = 1/f = 1/1Mhz = 1us
+//Time delay:
+        t = n * p * T
+
+
+//Square Wave at 10Hz, 输出10hz方波, normal
+CLKPR = (1 << CLKPCE);
+CLKPR = 0b00000011;     //Set clk to 1MHz
+DDRD  = 0b00000001;     //PD0 as output
+PORTD = 0;              //initial output 0
+while (1) {
+        TCNT0  = 206;                   //n=(256-206)
+        TCCR0A = 0;                     //normal mode, init clk
+        TCCR0B = 0b00000101;            //p=1024, start Timer
+        while ((TIFR0 & (1 << TOV0));   //wait for flag TOV0=1
+        TCCR0B = 0;                     //Stop Timer
+        TIFR0  = (1 << TOV0);           //clear TOV0
+        PORTD  = (PORTD ^ 0b00000001);  //Toogle
+}
+
+
+//Square Wave at 10Hz, 输出10hz方波, CTC mode
+OCR0A   = 13;   //n=14
+TCCR0A  = 0x02; //CTC mode, init clk
+while (1) {
+        TCCR0B = 0x01;                          //start Timer0
+        while ((TIFR0 & (1 << OCF0A)) == 0)     //wait for flag TOV0=1
+        TCCR0B = 0x00;                          //stop Timer0
+        TIFR0 = TIFR0 | (1 << OCF0A);           //clear TOV0
+}
+
+
+
+
+/*******************************************************************************
+                                ADC
+*******************************************************************************/
+AVCC    //加上一个低通滤波器，使测量更准确
+AREF    //用户自己定义电压
+
+
+ADMUX //Input pin and reference voltage control
+_________________________________________________________
+| REFS1 | REFS0 | ADLAR | - | MUX3 | MUX2 | MUX1 | MUX0 |
+|_______|_______|_______|___|______|______|______|______|
+//Voltage Reference Selection(ADC参考电压选择)
+//REFS1  REFS0    Comment
+    0      0      Aref
+    0      1      Avcc
+    1      0      Reserved
+    1      1      Internal 1.1V
+    
+//ADC Left Adjust Result(ADC读出的数据对齐方式)
+//AKLAR           Comment
+0                 Right adjusted
+1                 Left adjusted
+
+//Input Channel Selection
+MUX3 MUX2 MUX1 MUX0     Comment
+ 0    0    0    0       ADC0
+ 0    0    0    1       ADC1
+ 0    0    1    0       ADC2
+ 0    0    1    1       ADC3
+ 0    1    0    0       ADC4
+ 0    1    0    1       ADC5
+ 1    1    1    1       0V  
+
+
+
+ADCSRA  //Status and prescalar control
+_____________________________________________________________
+| ADEN | ADSC | ADATE | ADIF | ADIE | ADPS2 | ADPS1 | ADPS0 |
+|______|______|_______|______|______|_______|_______|_______|
+//ADC Enable
+ADEN    Comment
+ 0      ADC off
+ 1      ADC on
+
+//ADC Start Conversion
+ADSC    Comment
+ 0      No effect (turns to 0 when the ADC is done)
+ 1      Start conversion
+
+//ADC Auto Trigger Enable
+ADATE   Comment
+ 0      No effect (turns to 0 when the ADC is done)
+ 1      Auto trigger on
+
+//ADC Interrupt Flag
+//Note: ADIF can be cleared by written 1 into the bit
+ADIF    Comment
+ 0      No effect
+ 1      Clear the flag
+
+//ADC Interrupt Enable
+ADIE    Comment
+ 0      Disable interrupt
+ 1      Enable interrupt
+
+//ADC Prescaler Selection
+ADPS2 ADPS1 ADPS0       Comment
+  0     0     0            2
+  0     0     1            2
+  0     1     0            4
+  0     1     1            8
+  1     0     0            16
+  1     0     1            32
+  1     1     0            64
+  1     1     1            128
+  
+  
+  
+ADCH    //ADC data storage
+ADCL    //10-bit ADC needs 2 bytes for storing
+____________________________________________________
+
+//Read DMS Sensor
+#define F_CPU           (1000000UL)
+#include <avr/io.h>
+#include <util/delay.h>
+
+int main(void)
+{
+        CLKPR  = (1 << CLKPCE);
+        CLKPR  = 0b00000011;    //set clk to 1MHz
+        DDRB   = 0xFF;          //PORTB as output
+        DDRD   = 0xFF;          //PORTD as output
+        DDRC   = 0x00;          //PORTC as input
+        ADCSRA = 0b10000111;    //enable   + prescaler
+        ADMUX  = 0b11000000;    //ref volt + channel
+        
+        while (1) {
+                ADCSRA |= (1 << ADIF);                //clear ADIF
+                ADCSRA |= (1 << ADSC);                //start ADC
+                while ((ADCSRA & (1 << ADIF)) == 0); //wait for adc done
+                PORTD   = ADCL;                       //read low byte first
+                PORTB   = ADCH;
+                _delay_ms(200);
+        }
+}
+
+
+
+____________________________________________________
+
+//Read DMS Sensor (Free Running)
+//Note: Do not need to check the flag ADIF
+#define F_CPU           (1000000UL)
+#include <avr/io.h>
+#include <util/delay.h>
+
+int main(void)
+{
+        CLKPR   = (1 << CLKPCE);
+        CLKPR   = 0b00000011;    //set clk to 1MHz
+        DDRB    = 0xFF;          //PORTB as output
+        DDRD    = 0xFF;          //PORTD as output
+        DDRC    = 0x00;          //PORTC as input
+        ADCSRA  = 0b10100111;    //free running mode
+        ADMUX   = 0b11000000;    //ref volt + channel
+        ADCSRA |= (1 << ADSC);   //start ADC
+        while (1) {
+                PORTD   = ADCL; //read low byte first
+                PORTB   = ADCH;
+                _delay_ms(200);
+        }
+}
+
+
+
+/*******************************************************************************
+                                  USART
+*******************************************************************************/
+//UCSR0C基本参数设置寄存器
+________________________________________________________________________
+| UMSEL01 | UMSEL00 | UPM01 | UPM00 | USBS0 | UCSZ01 | UCSZ00 | UCPOL0 |
+|_________|_________|_______|_______|_______|________|________|________|
+
+//USART Mode Selection
+UMSEL01    UMSEL00    Comment
+  0          0        //Asynchronous USART
+  0          1        //Synchronous USART
+  1          0        //Reserved
+  1          1        //Master SPI
+  
+//Parity Mode Selection
+UPM01      UPM00      Comment
+  0          0        //Disabled
+  0          1        //Reserved
+  1          0        //Enable, even parity
+  1          1        //Enable, odd parity
+  
+//Stop Bit Selection
+USBS0                 Comment
+  0                   //1-bit
+  1                   //2-bit
+  
+//Number of Data Bits Selection
+UCSZ01    UCSZ00      Comment
+  0          0        //5-bit
+  0          1        //6-bit
+  1          0        //7-bit
+  1          1        //8-bit
+  
+  
+//UCSR0B_中断控制寄存器
+_____________________________________________________________________
+| RXCIE0 | TXCIE0 | UDRIE0 | RXEN0 | TXEN0 | UCSZ02 | RXB80 | TXB80 |
+|________|________|________|_______|_______|________|_______|_______|
+RXCIE0  //RX Complete Interrupt Enable
+TXCIE0  //TX Complete Interrupt Enable
+UDRIE0  //USART Data Register Empty Interrupt Enable
+RXEN0   //Receiver Enable
+TXEN0   //Transmitter Enable
+UCSZ02  //Used with UCSZ01 and UCSZ00
+
+
+//UCSR0A_状态寄存器
+__________________________________________________________
+| RXC0 | TXC0 | UDRE0 | FE0 | DOR0 | UPE0 | U2X0 | MPCM0 |
+|______|______|_______|_____|______|______|______|_______|
+RXC0    //USART Receive Complete
+TXC0    //USART Transmit Complete
+UDRE0   //
+FE0     //
+DOR0    //
+UPE0    //
+U2X0    //
+MPCM0   //
+
+
