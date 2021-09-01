@@ -60,6 +60,7 @@ _________________________________________
 
 //Assembly program code:
 //PortD_Pin0 = 1;
+___________________________________________________________
 LDI     R20,   0b00000001
 OUT     DDRD,  R20
 OUT     PORTD, R20
@@ -179,70 +180,69 @@ _______________________________________
 
 
 // AVR - Status Register (SREG)
-___________________________________________________________
+_________________________________
 |   |   |   |   |   |   |   |   |
 | I | T | H | S | V | N | Z | C |
-|___|___|___|___|___|___|___|___|
-  I       //Interrupt     Enables Global Insterrupt when Set
-  T       //T Flag        Source and Destination for BLD and BST
-  H       //Half carry    Set if an Add/Sub. has Carry between Bits 4&3
-  S       //Signd Flag    Used for Signed Tests
-  V       //oVerflow      Set if an Add/Sub Results in Signed Overflow
-  N       //Negative      Set if a Result is Negative
-  Z       //Zero          Set if a Add/Subtract resutl is zero
-  C       //Carry         Set if an Add/Subtract has Carry
-
-
-BREQ    //Branch if Equal               jump if Z = 1
-BRNE    //Branch if Not Equal           jump if Z = 0
-BRCS    //Branch if Carry Set           jump if C = 1
-BRCC    //Branch if Carry Cleard        jump if C = 0
-
-
-//if else
-______________________________________
-      |   R21 < R20   |  R21 >= R20  |
-___ __|_______________|______________|
- C    |       1       |       0      |
-______|_______________|______________|
- jmp  |      NO       |      YES     |
-______|_______________|______________|
-
-if (R20 > R21)
-        R26++;
-else
-        R26--;
-______________________________________
-        SUB     R21, R20
-        BRCC    L1      //jump if C = 0
-        INC     R26
-        JMP     L2
-L1:
-        DEC     R26
-L2:
-______________________________________
-
-
-
-// for
-______________________________________
-      |    R20 = 0    |  R20 != 0    |
-___ __|_______________|______________|
- Z    |       1       |       0      |
-______|_______________|______________|
- jmp  |      NO       |      YES     |
-______|_______________|______________|
-        9+8+7+6+5+4+3+2+1
-R30 = 0x00;
-for (i = 9; i >= 0; i--)
-        R30 = R30 + i;
-______________________________________
-        LDI     R30, 0x00
-        LDI     R20, 0x09
-L1:     ADD     R30, R20
-        DEC     R20
-        BRNE    L1      //jump if Z = 0
-______________________________________
+|___|___|___|___|___|___|___|___|______________________________________________|
+|   I   //Interrupt     Enables Global Insterrupt when Set                     |
+|   T   //T Flag        Source and Destination for BLD and BST                 |
+|   H   //Half carry    Set if an Add/Sub. has Carry between Bits 4&3          |
+|   S   //Signd Flag    Used for Signed Tests                                  |
+|   V   //oVerflow      Set if an Add/Sub Results in Signed Overflow           |
+|   N   //Negative      Set if a Result is Negative                            |
+|   Z   //Zero          Set if a Add/Subtract resutl is zero                   |
+|   C   //Carry         Set if an Add/Subtract has Carry                       |
+|______________________________________________________________________________|
+| BREQ    //Branch if Equal               jump if Z = 1                        |
+| BRNE    //Branch if Not Equal           jump if Z = 0                        |
+| BRCS    //Branch if Carry Set           jump if C = 1                        |
+| BRCC    //Branch if Carry Cleard        jump if C = 0                        |
+|______________________________________________________________________________|
+|
+| //if else
+|________________________________________
+|        |   R21 < R20   |  R21 >= R20  |
+|________|_______________|______________|
+|   C    |       1       |       0      |
+|________|_______________|______________|
+|  jmp   |      NO       |      YES     |
+|________|_______________|______________|
+|                                       |
+|  if (R20 > R21)                       |
+|          R26++;                       |
+|  else                                 |
+|          R26--;                       |
+|_______________________________________|
+|          SUB     R21, R20             |
+|          BRCC    L1   //jump if C = 0 |
+|          INC     R26                  |
+|          JMP     L2                   |
+|  L1:                                  |
+|          DEC     R26                  |
+|  L2:                                  |
+|_______________________________________|
+|
+|
+|
+| // for
+|______________________________________
+|       |    R20 = 0    |  R20 != 0    |
+|_______|_______________|______________|
+|   Z   |      1        |       0      |
+|_______|_______________|______________|
+|  jmp  |      NO       |      YES     |
+|_______|_______________|______________|
+|         9+8+7+6+5+4+3+2+1            |
+| R30 = 0x00;                          |
+| for (i = 9; i >= 0; i--)             |
+|         R30 = R30 + i;               |
+|______________________________________|
+|         LDI     R30, 0x00            |
+|         LDI     R20, 0x09            |
+| L1:     ADD     R30, R20             |
+|         DEC     R20                  |
+|         BRNE    L1   //jump if Z = 0 |
+|______________________________________|
 
 
 
@@ -307,7 +307,6 @@ _________________________________________
 SBIC    PIND, 5
 INC     R20
 LDI     R19, 23
-
 
 
 
