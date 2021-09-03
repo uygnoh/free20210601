@@ -124,13 +124,22 @@ int main(void)
 
 
 
-//自定义 1Hz信号输出
+//timer4自定义 1Hz信号输出
 _______________________________________________________________
 void timer4_init(void)
 {
         TIM4_PSCR = 0x03; //设置预分频寄存器数值得到 250KHz计数频率
         TIM4_ARR  = 0xFA; //设置自动重装载寄存器为 250，得到定时时间为 1ms
         TIM4_IER  = 0x01; //开启 TIM4 更新事件中断使能
-        TIM4_CNTR = 0xFA; //配置 TIM4 定时器初值
-        
+        TIM4_CNTR = 0xFA; //配置 TIM4 定时器初值  
+}
+#pragma vector=0x19
+__interrupt void TIM4_UPD_OVF_IRQHandler(void)
+{
+        num++;
+        TIM4_SR = 0;
+        if (num == 500) {
+                led1 = !led1;
+                num = 0;
+        }
 }
